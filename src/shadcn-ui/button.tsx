@@ -14,7 +14,7 @@ const buttonVariants = cva(
 				destructive:
 					'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
 				outline:
-					'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50',
+					'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 data-[active=true]:bg-accent data-[active=true]:text-accent-foreground data-[active=true]:border-accent-foreground dark:data-[active=true]:bg-accent/50',
 				secondary: 'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80',
 				ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
 				link: 'text-primary underline-offset-4 hover:underline',
@@ -38,16 +38,19 @@ function Button({
 	variant,
 	size,
 	asChild = false,
+	isActive = false,
 	...props
 }: React.ComponentProps<'button'> &
 	VariantProps<typeof buttonVariants> & {
 		asChild?: boolean;
+		isActive?: boolean;
 	}) {
 	const Comp = asChild ? Slot : 'button';
 
 	return (
 		<Comp
 			data-slot='button'
+			data-active={isActive ? true : undefined}
 			className={cn(buttonVariants({ variant, size, className }))}
 			{...props}
 		/>
