@@ -2,7 +2,51 @@
 
 import { useState } from 'react';
 
-import { Button, DialogDescription, DialogHeader, DialogTitle, Input, Select } from '@/shadcn-ui';
+import {
+	Button,
+	Input,
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/shadcn-ui';
+
+const AIProviders = [
+	{
+		name: 'GPT3.5',
+		value: 'gpt3.5-turbo',
+	},
+	{
+		name: 'GPT4',
+		value: 'gpt4',
+	},
+	{
+		name: 'GPT4o',
+		value: 'gpt4o',
+	},
+	{
+		name: 'GPT4o-mini',
+		value: 'gpt4o-mini',
+	},
+	{
+		name: 'Claude',
+		value: 'claude-2',
+	},
+	{
+		name: 'Claude-instant',
+		value: 'claude-instant-100k',
+	},
+	{
+		name: 'Llama2',
+		value: 'llama2-70b-chat',
+	},
+	{
+		name: 'Llama3',
+		value: 'llama3-70b-chat',
+	},
+];
 
 const OnboardingStep1 = ({
 	setIsOpen,
@@ -12,32 +56,49 @@ const OnboardingStep1 = ({
 	setStep: (step: number) => void;
 }) => {
 	return (
-		<div>
-			<DialogHeader>
-				<DialogTitle>First, setup your LangRoute environment</DialogTitle>
-			</DialogHeader>
+		<div className='flex flex-col gap-5'>
+			<h2 className='font-semibold'>First, setup your LangRoute environment</h2>
+
 			<div>
-				<label>
+				<label className='text-foreground text-sm'>
 					We created a LangRoute API key for your API calls:
 					<Input
 						value='sk-1234abcd'
 						readOnly
 					/>
 				</label>
-				<small>This is used to authenticate against LangRoute when you make an API call.</small>
+				<small className='text-muted-foreground text-xs'>
+					This is used to authenticate against LangRoute when you make an API call.
+				</small>
 			</div>
 
-			<label>
+			<label className='text-secondary-foreground text-sm'>
 				Create a provider/model to connect to
-				<Select />
+				<Select>
+					<SelectTrigger className='w-full'>
+						<SelectValue placeholder='Select an AI Provider' />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							{AIProviders.map((provider) => (
+								<SelectItem
+									key={provider.value}
+									value={provider.value}
+								>
+									{provider.name}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
+				</Select>
 			</label>
 
-			<label>
+			<label className='text-secondary-foreground text-sm'>
 				Enter your LLM model API key
 				<Input placeholder='Your provider/model API key' />
 			</label>
 
-			<div>
+			<div className='mt-6 flex items-center justify-between gap-2'>
 				<Button
 					variant='outline'
 					onClick={() => setIsOpen(false)}
@@ -59,23 +120,37 @@ const OnboardingStep2 = ({
 }) => {
 	return (
 		<div>
-			<DialogHeader>
-				<DialogTitle>Let’s run a test now</DialogTitle>
-				<DialogDescription>
-					Run the following code and send us a request. Do not forget to change your server’s IP
-					address or it won’t reach us.
-				</DialogDescription>
-			</DialogHeader>
-			<div>
-				<div>
-					<Button>Curl</Button>
-					<Button>Python</Button>
-					<Button>Node.js</Button>
+			<h2 className='mb-2 font-semibold'>Let’s run a test now</h2>
+			<p className='text-muted-foreground mb-4 text-sm'>
+				Run the following code and send us a request. Do not forget to change your server’s IP
+				address or it won’t reach us.
+			</p>
+			<div className='mb-4 flex items-center justify-between gap-2'>
+				<div className='grid grid-cols-3 gap-2'>
+					<Button
+						size='sm'
+						variant='outline'
+					>
+						Curl
+					</Button>
+					<Button
+						size='sm'
+						variant='outline'
+						isActive
+					>
+						Python
+					</Button>
+					<Button
+						size='sm'
+						variant='outline'
+					>
+						Node.js
+					</Button>
 				</div>
 				<small>Waiting for test results...</small>
 			</div>
-			<div>
-				<code>{`// npm install --save langroute
+			<div className='bg-muted border-border mb-6 overflow-x-auto rounded-md border p-4'>
+				<code className='font-mono text-sm'>{`// npm install --save langroute
 import {LangRoute} from 'langroute';
 
 // Create an LLM using a virtual key
@@ -97,11 +172,12 @@ console.log(chatCompletion.choices);
 			<div className='flex items-center justify-between'>
 				<Button
 					variant='link'
+					className='!px-0'
 					onClick={() => setStep(2)}
 				>
 					Skip this test
 				</Button>
-				<div>
+				<div className='flex gap-3'>
 					<Button
 						variant='outline'
 						onClick={() => setIsOpen(false)}
@@ -125,18 +201,18 @@ console.log(chatCompletion.choices);
 const OnboardingStep3 = ({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }) => {
 	return (
 		<div>
-			<DialogTitle>That was it!</DialogTitle>
-			<DialogDescription>
+			<h2 className='mb-2 font-semibold'>That was it!</h2>
+			<p className='text-muted-foreground mb-4 text-sm'>
 				You can now use the LangRoute API key created for you, and start sending API calls to
 				LangRoute. All your requests will be logged and forwarded to one of the LLMs. You can also
 				view logs and other information from this page. In case you forgot to get a copy of your
 				LangRoute API key, here it is:
-			</DialogDescription>
+			</p>
 			<Input
 				value='sk-1234abcd'
 				readOnly
 			/>
-			<div>
+			<div className='mt-6 flex items-center justify-end gap-2'>
 				<Button onClick={() => setIsOpen(false)}>Continue</Button>
 			</div>
 		</div>
