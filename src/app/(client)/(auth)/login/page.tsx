@@ -1,55 +1,97 @@
 'use client';
 
-import React, { FormEvent } from 'react';
+import React from 'react';
 
 import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
+
 import { Button, FormInput } from '@components';
+
+import { useLoginMutation } from '@/app/(client)/hooks/data';
+import { useFormSubmission, useLoginForm } from '@/app/(client)/hooks/forms';
+import { queryKeys } from '@/lib/queryKeys';
+import { Form } from '@/shadcn-ui';
 
 import AuthFormWrapper from '../components/AuthFormWrapper';
 
+type ApiError = {
+	message?: string;
+	fieldErrors?: Partial<Record<'email' | 'password' | '_form', string>>;
+};
+
 export default function LoginPage() {
 	const router = useRouter();
+	const loginMutation = useLoginMutation();
+	const queryClient = useQueryClient();
+	const form = useLoginForm();
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const {
+		register,
+		getValues,
+		formState: { errors, isValid },
+	} = form;
 
-		router.push('/dashboard');
-	};
+	const { loading, handleSubmit, toast } = useFormSubmission({
+		mutation: loginMutation,
+		getVariables: () => getValues(),
+		validate: () => isValid,
+		onSuccess: async () => {
+			// Invalidate auth cache so useCurrentUserQuery refetches immediately.
+			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+
+			const message = loginMutation.data?.message ?? 'Logged in successfully. Redirecting…';
+			toast.showToast({ message, variant: 'success' });
+			router.replace('/dashboard');
+		},
+		onError: (err: unknown) => {
+			const ax = err as AxiosError<ApiError> | undefined;
+			const message = ax?.response?.data?.message ?? 'Unable to log in!';
+			toast.showToast({ message, variant: 'error' });
+		},
+		skipDefaultToast: true,
+	});
 
 	return (
 		<AuthFormWrapper>
 			<h1 className='h1'>Login to your account</h1>
-			<form
-				className='min-w-[25em]'
-				onSubmit={handleSubmit}
-			>
-				<div className='mb-10 flex flex-col gap-5'>
-					<FormInput
-						label='Email'
-						type='email'
-						name='email'
-						placeHolder='m@example.com'
-					/>
-					<FormInput
-						label='Password'
-						type='password'
-						name='password'
-						placeHolder='********'
-					/>
-				</div>
-				<div>
-					<Button
-						type='submit'
-						fullWidth
-						loading={false}
-					>
-						Login
-					</Button>
-				</div>
-			</form>
-			<NextLink href='/forgot-password'>Forgot your password?</NextLink>
+			<Form {...form}>
+				<form
+					onSubmit={handleSubmit}
+					className='min-w-[25em]'
+				>
+					<div className='mb-10 flex flex-col gap-5'>
+						<FormInput
+							label='Email'
+							type='email'
+							placeHolder='m@example.com'
+							{...register('email')}
+							errorMessage={errors.email?.message}
+						/>
+						<FormInput
+							label='Password'
+							type='password'
+							placeHolder='********'
+							{...register('password')}
+							errorMessage={errors.password?.message}
+						/>
+					</div>
+					<div>
+						<Button
+							type='submit'
+							fullWidth
+							disabled={!isValid}
+							loading={loading}
+							loadingText='Logging in...'
+						>
+							Log in
+						</Button>
+					</div>
+				</form>
+			</Form>
+			<NextLink href='/password/forgot'>Forgot your password?</NextLink>
 		</AuthFormWrapper>
 	);
 }
