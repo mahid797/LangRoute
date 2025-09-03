@@ -19,6 +19,7 @@ interface FormInputProps {
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 	onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
 	placeHolder?: string;
+	errorMessage?: string;
 	className?: string;
 }
 
@@ -31,10 +32,13 @@ export default function FormInput({
 	onChange,
 	onBlur,
 	placeHolder,
+	errorMessage = '',
 	className,
 	...props
 }: FormInputProps) {
 	const inputId = id || `input-${name}`;
+	const errorId = `${inputId}-error`;
+	const showError = Boolean(errorMessage);
 	const isPassword = type === 'password';
 	const [showPassword, setShowPassword] = useState(false);
 
@@ -57,6 +61,8 @@ export default function FormInput({
 					onChange={onChange}
 					onBlur={onBlur}
 					placeholder={placeHolder}
+					aria-invalid={showError || undefined}
+					aria-describedby={showError ? errorId : undefined}
 					className={cn(isPassword && 'pr-12', className)}
 				/>
 				{isPassword && (
@@ -73,6 +79,16 @@ export default function FormInput({
 					</Button>
 				)}
 			</div>
+
+			{showError && (
+				<p
+					id={errorId}
+					role='alert'
+					className='text-destructive text-xs'
+				>
+					{errorMessage}
+				</p>
+			)}
 		</div>
 	);
 }
