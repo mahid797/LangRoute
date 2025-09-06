@@ -1,9 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { useForm } from 'react-hook-form';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { LoaderCircle } from 'lucide-react';
+import { toast } from 'sonner';
+
+import { AiProviderInterface } from '@/app/(server)/services/aiProvider/service';
+import { CreateAiKeyData, CreateAiKeySchema } from '@/lib/validation/aiKeys.schemas';
 import {
 	Button,
+	Form,
+	FormDescription,
+	FormField,
+	FormItem,
+	FormLabel,
 	Input,
 	Select,
 	SelectContent,
@@ -13,41 +26,12 @@ import {
 	SelectValue,
 } from '@/shadcn-ui';
 
-const AIProviders = [
-	{
-		name: 'GPT3.5',
-		value: 'gpt3.5-turbo',
-	},
-	{
-		name: 'GPT4',
-		value: 'gpt4',
-	},
-	{
-		name: 'GPT4o',
-		value: 'gpt4o',
-	},
-	{
-		name: 'GPT4o-mini',
-		value: 'gpt4o-mini',
-	},
-	{
-		name: 'Claude',
-		value: 'claude-2',
-	},
-	{
-		name: 'Claude-instant',
-		value: 'claude-instant-100k',
-	},
-	{
-		name: 'Llama2',
-		value: 'llama2-70b-chat',
-	},
-	{
-		name: 'Llama3',
-		value: 'llama3-70b-chat',
-	},
-];
-
+/**
+ *
+ * @param setIsOpen Function to set the onboarding modal open state
+ * @param setStep Function to set the current step of the onboarding process
+ * @returns First step of the onboarding process where user sets up their LangRoute environment (AI provider and API key for the provider)
+ */
 const OnboardingStep1 = ({
 	setIsOpen,
 	setStep,
@@ -55,59 +39,153 @@ const OnboardingStep1 = ({
 	setIsOpen: (isOpen: boolean) => void;
 	setStep: (step: number) => void;
 }) => {
+	const [providers, setProviders] = useState<AiProviderInterface[]>([]);
+	const form = useForm<CreateAiKeyData>({
+		resolver: zodResolver(CreateAiKeySchema),
+		defaultValues: {
+			provider: providers[0]?.code as CreateAiKeyData['provider'],
+			apiKey: 'sk-1234abcd',
+			aiKey: '',
+		},
+	});
+	const {
+		handleSubmit,
+		formState: { errors },
+	} = form;
+	const [isLoading, setIsLoading] = useState(true);
+	const [isFormLoading, setIsFormLoading] = useState(false);
+
+	const getProviders = async () => {
+		const res = await fetch('/api/aiProviders');
+		const data = await res.json();
+		setProviders(data);
+		setIsLoading(false);
+	};
+
+	useEffect(() => {
+		getProviders();
+	}, []);
+
+	const onSubmit = async (data: CreateAiKeyData) => {
+		setIsFormLoading(true);
+		if (Object.keys(errors).length !== 0) {
+			return;
+		}
+		const res = await fetch('/api/aiKeys', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		});
+		if (res.ok) {
+			setStep(1);
+		} else {
+			toast.error('Failed to create AI key. Please try again.');
+		}
+		setIsFormLoading(false);
+	};
+
+	if (isLoading) {
+		return (
+			<div className='flex h-full w-full items-center justify-center'>
+				<LoaderCircle
+					className='text-foreground animate-spin'
+					size={40}
+				/>
+			</div>
+		);
+	}
+
 	return (
-		<div className='flex flex-col gap-5'>
-			<h2 className='font-semibold'>First, setup your LangRoute environment</h2>
+		<Form {...form}>
+			<form
+				className='flex flex-col gap-5'
+				onSubmit={handleSubmit(onSubmit)}
+			>
+				<h2 className='font-semibold'>First, setup your LangRoute environment</h2>
+				<FormField
+					control={form.control}
+					name='apiKey'
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>We created a LangRoute API key for your API calls:</FormLabel>
+							<Input
+								{...field}
+								readOnly
+							/>
+							<FormDescription>
+								This is used to authenticate against LangRoute when you make an API call.
+							</FormDescription>
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
+					name='provider'
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Create a provider/model to connect to</FormLabel>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+							>
+								<SelectTrigger className='w-full'>
+									<SelectValue placeholder='Select an AI Provider' />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectGroup>
+										{providers.map((provider) => (
+											<SelectItem
+												key={provider.id}
+												value={provider.code}
+											>
+												{provider.name}
+											</SelectItem>
+										))}
+									</SelectGroup>
+								</SelectContent>
+							</Select>
+							{errors.provider && <p className='text-sm text-red-600'>{errors.provider.message}</p>}
+						</FormItem>
+					)}
+				/>
+				<FormField
+					control={form.control}
+					name='aiKey'
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Enter your LLM model API key</FormLabel>
+							<Input
+								placeholder='Your provider/model API key'
+								{...field}
+							/>
+							{errors.aiKey && <p className='text-sm text-red-600'>{errors.aiKey.message}</p>}
+						</FormItem>
+					)}
+				/>
 
-			<div>
-				<label className='text-foreground text-sm'>
-					We created a LangRoute API key for your API calls:
-					<Input
-						value='sk-1234abcd'
-						readOnly
-					/>
-				</label>
-				<small className='text-muted-foreground text-xs'>
-					This is used to authenticate against LangRoute when you make an API call.
-				</small>
-			</div>
-
-			<label className='text-secondary-foreground text-sm'>
-				Create a provider/model to connect to
-				<Select>
-					<SelectTrigger className='w-full'>
-						<SelectValue placeholder='Select an AI Provider' />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectGroup>
-							{AIProviders.map((provider) => (
-								<SelectItem
-									key={provider.value}
-									value={provider.value}
-								>
-									{provider.name}
-								</SelectItem>
-							))}
-						</SelectGroup>
-					</SelectContent>
-				</Select>
-			</label>
-
-			<label className='text-secondary-foreground text-sm'>
-				Enter your LLM model API key
-				<Input placeholder='Your provider/model API key' />
-			</label>
-
-			<div className='mt-6 flex items-center justify-between gap-2'>
-				<Button
-					variant='outline'
-					onClick={() => setIsOpen(false)}
-				>
-					Skip onboarding
-				</Button>
-				<Button onClick={() => setStep(1)}>Apply and go to next step</Button>
-			</div>
-		</div>
+				<div className='mt-6 flex items-center justify-between gap-2'>
+					<Button
+						variant='outline'
+						type='button'
+						onClick={() => setIsOpen(false)}
+					>
+						Skip onboarding
+					</Button>
+					<Button type='submit'>
+						{isFormLoading ? (
+							<LoaderCircle
+								className='text-accent animate-spin'
+								size={40}
+							/>
+						) : (
+							'Apply and go to next step'
+						)}
+					</Button>
+				</div>
+			</form>
+		</Form>
 	);
 };
 
@@ -237,6 +315,8 @@ const Onboarding = ({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }) => 
 			setIsOpen={setIsOpen}
 		/>,
 	];
+
+	console.log({ screen });
 
 	return steps[screen];
 };

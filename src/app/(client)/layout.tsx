@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google';
 
 import { AppProviders } from '@providers';
 
+import { Toaster } from '@/shadcn-ui/sonner';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -71,7 +73,10 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<AppProviders>{children}</AppProviders>
+				<AppProviders>
+					{children}
+					<Toaster />
+				</AppProviders>
 			</body>
 		</html>
 	);
