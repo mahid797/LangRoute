@@ -26,6 +26,7 @@ model User {
   accounts    Account[]
   apiKeys     ApiKey[]
   memberships TeamMembership[]
+  aiKeys      AiKeys[]
 
   @@index([role])
   @@index([emailVerified])
@@ -96,6 +97,7 @@ model Team {
 
   memberships TeamMembership[]
   invites     InviteToken[]
+  aiKeys      AiKeys[]
 }
 
 model TeamMembership {
@@ -122,4 +124,30 @@ model InviteToken {
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@index([teamId])
+}
+
+model AiProviders {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  aiKeys AiKeys[]
+}
+
+model AiKeys {
+  id        String   @id @default(uuid())
+  teamId    String
+  createdBy String
+  provider  String
+  apiKey    String
+  validated Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team       Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user       User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  aiProvider AiProviders @relation(fields: [provider], references: [id], onDelete: Restrict)
+
+  @@index([teamId, provider])
 }
