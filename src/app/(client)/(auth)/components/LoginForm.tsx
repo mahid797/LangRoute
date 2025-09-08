@@ -6,7 +6,6 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 
 import { Button, FormInput } from '@components';
 
@@ -14,11 +13,6 @@ import { useLoginMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useLoginForm } from '@/app/(client)/hooks/forms';
 import { queryKeys } from '@/lib/queryKeys';
 import { Form } from '@/shadcn-ui';
-
-type ApiError = {
-	message?: string;
-	fieldErrors?: Partial<Record<'email' | 'password' | '_form', string>>;
-};
 
 export default function LoginForm() {
 	const router = useRouter();
@@ -37,16 +31,16 @@ export default function LoginForm() {
 		getVariables: () => getValues(),
 		validate: () => isValid,
 		onSuccess: async () => {
-			// Invalidate auth cache so useCurrentUserQuery refetches immediately.
-			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+			// Invalidate auth cache so useSessionUser refetches immediately.
+			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
 
 			const message = loginMutation.data?.message ?? 'Logged in successfully. Redirecting…';
 			toast.showToast({ message, variant: 'success' });
+
 			router.replace('/dashboard');
 		},
-		onError: (err: unknown) => {
-			const ax = err as AxiosError<ApiError> | undefined;
-			const message = ax?.response?.data?.message ?? 'Unable to log in!';
+		onError: (err) => {
+			const message = err.message || 'Unable to log in!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,

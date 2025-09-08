@@ -5,7 +5,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
 
 import { Button, FormInput } from '@components';
 
@@ -13,13 +12,6 @@ import { useLoginMutation, useRegisterMutation } from '@/app/(client)/hooks/data
 import { useFormSubmission, useRegisterForm } from '@/app/(client)/hooks/forms';
 import { queryKeys } from '@/lib/queryKeys';
 import { Form } from '@/shadcn-ui';
-
-type ApiError = {
-	message?: string;
-	fieldErrors?: Partial<
-		Record<'email' | 'password' | 'confirmPassword' | 'name' | '_form', string>
-	>;
-};
 
 export default function RegisterForm() {
 	const router = useRouter();
@@ -45,28 +37,27 @@ export default function RegisterForm() {
 			try {
 				await loginMutation.mutateAsync({ email, password });
 
-				// Invalidate auth cache so useCurrentUserQuery refetches immediately.
-				await queryClient.invalidateQueries({ queryKey: queryKeys.auth.me() });
+				// Invalidate auth cache so useSessionUser refetches immediately.
+				await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
 
 				const message =
 					registerMutation.data?.message ?? 'Account created. Redirecting to your dashboard…';
 				toast.showToast({ message, variant: 'success' });
 
 				router.replace('/dashboard');
-			} catch (err: unknown) {
-				const ax = err as AxiosError<ApiError> | undefined;
+			} catch (err) {
 				const message =
-					ax?.response?.data?.message ??
-					'Account created, but we couldn’t sign you in automatically. Please log in.';
+					err instanceof Error
+						? err.message
+						: 'Account created, but we couldn’t sign you in automatically. Please log in.';
 				toast.showToast({ message, variant: 'error' });
 
 				// Reasonable fallback: send them to the login page with email prefilled
 				router.replace(`/login?email=${encodeURIComponent(email)}`);
 			}
 		},
-		onError: (err: unknown) => {
-			const ax = err as AxiosError<ApiError> | undefined;
-			const message = ax?.response?.data?.message ?? 'Unable to create account!';
+		onError: (err) => {
+			const message = err.message ?? 'Unable to create account!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,

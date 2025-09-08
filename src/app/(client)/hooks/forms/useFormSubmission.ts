@@ -95,9 +95,14 @@ function toMessage(err: unknown): string {
 	return maybe?.response?.data?.message ?? maybe?.message ?? 'An unexpected error occurred.';
 }
 
-interface UseFormSubmissionProps {
+interface UseFormSubmissionProps<
+	V = void, // variables (default: no variables)
+	R = unknown, // result data
+	E = unknown, // error type
+	C = unknown, // context
+> {
 	/** TanStack Query mutation; enables adapter mode when supplied. */
-	mutation?: UseMutationResult<unknown, unknown, void, unknown>;
+	mutation?: UseMutationResult<R, E, V, C>;
 	/**
 	 * @deprecated Legacy fallback; avoid using this unless mutation cannot be used.
 	 * Prefer passing a TanStack `mutation` instead.
@@ -105,9 +110,9 @@ interface UseFormSubmissionProps {
 	onSubmit?: () => Promise<void>;
 	/** Client-side validator – return `true` to proceed. */
 	validate?: () => boolean;
-	getVariables?: () => void;
+	getVariables?: () => V;
 	onSuccess?: () => void;
-	onError?: (message: string) => void;
+	onError?: (error: E) => void;
 	/** Pre-canned toast messages on success/failure. */
 	successMessage?: string;
 	errorMessage?: string;
@@ -115,7 +120,7 @@ interface UseFormSubmissionProps {
 	skipDefaultToast?: boolean;
 }
 
-export const useFormSubmission = ({
+export const useFormSubmission = <V = void, R = unknown, E = unknown, C = unknown>({
 	mutation,
 	onSubmit,
 	getVariables,
@@ -125,7 +130,7 @@ export const useFormSubmission = ({
 	successMessage,
 	errorMessage,
 	skipDefaultToast = false,
-}: UseFormSubmissionProps) => {
+}: UseFormSubmissionProps<V, R, E, C>) => {
 	const [localLoading, setLocalLoading] = useState(false);
 	const [localError, setLocalError] = useState('');
 
@@ -168,7 +173,7 @@ export const useFormSubmission = ({
 			if (mutation) {
 				/* ---------- adapter mode (tanstack-query) ---------- */
 				const variables = getVariables ? getVariables() : undefined;
-				await mutation.mutateAsync(variables);
+				await mutation.mutateAsync(variables as unknown as V);
 			} else if (onSubmit) {
 				/** @deprecated Legacy fallback mode */
 				setLocalLoading(true);
@@ -189,7 +194,7 @@ export const useFormSubmission = ({
 			}
 
 			if (!mutation) setLocalError(message); // mutation already exposes its own error
-			onError?.(message);
+			onError?.(err as E);
 		} finally {
 			if (!mutation) setLocalLoading(false);
 		}
