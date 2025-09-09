@@ -21,9 +21,8 @@ export default function RegisterForm() {
 	const form = useRegisterForm();
 
 	const {
-		register,
 		getValues,
-		formState: { errors, isValid },
+		formState: { isValid },
 	} = form;
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
@@ -76,31 +75,31 @@ export default function RegisterForm() {
 				>
 					<div className='mb-10 flex flex-col gap-5'>
 						<FormInput
+							control={form.control}
+							name='name'
 							label='Full name'
-							placeHolder='Enter your full name'
-							{...register('name')}
-							errorMessage={errors.name?.message}
+							placeholder='Enter your full name'
 						/>
 						<FormInput
+							control={form.control}
+							name='email'
 							label='Email'
 							type='email'
-							placeHolder='m@example.com'
-							{...register('email')}
-							errorMessage={errors.email?.message}
+							placeholder='m@example.com'
 						/>
 						<FormInput
+							control={form.control}
+							name='password'
 							label='Password'
 							type='password'
-							placeHolder='Create a password'
-							{...register('password')}
-							errorMessage={errors.password?.message}
+							placeholder='Create a password'
 						/>
 						<FormInput
+							control={form.control}
+							name='confirmPassword'
 							label='Confirm password'
 							type='password'
-							placeHolder='Confirm your password'
-							{...register('confirmPassword')}
-							errorMessage={errors.confirmPassword?.message}
+							placeholder='Confirm your password'
 						/>
 					</div>
 					<div>

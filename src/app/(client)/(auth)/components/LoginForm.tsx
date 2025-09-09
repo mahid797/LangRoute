@@ -21,9 +21,8 @@ export default function LoginForm() {
 	const form = useLoginForm();
 
 	const {
-		register,
 		getValues,
-		formState: { errors, isValid },
+		formState: { isValid },
 	} = form;
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
@@ -56,18 +55,18 @@ export default function LoginForm() {
 				>
 					<div className='mb-10 flex flex-col gap-5'>
 						<FormInput
+							control={form.control}
+							name='email'
 							label='Email'
 							type='email'
-							placeHolder='m@example.com'
-							{...register('email')}
-							errorMessage={errors.email?.message}
+							placeholder='m@example.com'
 						/>
 						<FormInput
+							control={form.control}
+							name='password'
 							label='Password'
 							type='password'
-							placeHolder='********'
-							{...register('password')}
-							errorMessage={errors.password?.message}
+							placeholder='********'
 						/>
 					</div>
 					<div>
