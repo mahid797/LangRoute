@@ -56,7 +56,7 @@ const OnboardingStep1 = ({
 	const [isFormLoading, setIsFormLoading] = useState(false);
 
 	const getProviders = async () => {
-		const res = await fetch('/api/aiProviders');
+		const res = await fetch('/api/settings/aiProviders');
 		const data = await res.json();
 		setProviders(data);
 		setIsLoading(false);
@@ -71,7 +71,7 @@ const OnboardingStep1 = ({
 		if (Object.keys(errors).length !== 0) {
 			return;
 		}
-		const res = await fetch('/api/aiKeys', {
+		const res = await fetch('/api/settings/environment', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -81,7 +81,10 @@ const OnboardingStep1 = ({
 		if (res.ok) {
 			setStep(1);
 		} else {
-			toast.error('Failed to create AI key. Please try again.');
+			const errorData = await res.json();
+			toast.error('Failed to create AI key. Please try again.', {
+				description: errorData.error.message,
+			});
 		}
 		setIsFormLoading(false);
 	};
@@ -315,8 +318,6 @@ const Onboarding = ({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }) => 
 			setIsOpen={setIsOpen}
 		/>,
 	];
-
-	console.log({ screen });
 
 	return steps[screen];
 };

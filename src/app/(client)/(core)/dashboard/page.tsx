@@ -13,9 +13,9 @@ export default function DashboardPage() {
 
 	useEffect(() => {
 		const fetchApiKeys = async () => {
-			const res = await fetch('/api/apikeys');
+			const res = await fetch('/api/settings/environment');
 			const data = await res.json();
-			if (data.apiKeys.length === 0) {
+			if (data.aiKeys.length === 0) {
 				setOpenOnboarding(true);
 			}
 			setIsLoading(false);
