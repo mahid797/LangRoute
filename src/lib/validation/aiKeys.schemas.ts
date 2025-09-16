@@ -12,7 +12,7 @@ export const CreateAiKeySchema = z.object({
 		'llama3-70b-chat',
 	]),
 	apiKey: z.string().trim().min(1).max(100),
-	aiKey: z.string().trim().min(1).max(100),
+	aiKey: z.string().trim().min(1),
 });
 
 export const AiKeyIdParamSchema = z.object({
