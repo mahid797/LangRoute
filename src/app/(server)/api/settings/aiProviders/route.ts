@@ -1,4 +1,4 @@
-import { aiProviderService } from '../../services/aiProvider/service';
+import { aiProviderService } from '@/app/(server)/services/aiProvider/service';
 
 export async function GET(): Promise<Response> {
 	const providers = await aiProviderService.getAiProviders();

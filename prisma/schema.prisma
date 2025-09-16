@@ -137,16 +137,16 @@ model AiProviders {
 
 model AiKeys {
   id        String   @id @default(uuid())
-  teamId    String
+  teamId    String?
   createdBy String
   provider  String
-  apiKey    String
+  aiKey     String
   validated Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  team       Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user       User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  team       Team?       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   aiProvider AiProviders @relation(fields: [provider], references: [id], onDelete: Restrict)
 
   @@index([teamId, provider])
