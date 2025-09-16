@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderCircle } from 'lucide-react';
+import sanitizeHtml from 'sanitize-html';
+import { codeToHtml } from 'shiki';
 import { toast } from 'sonner';
 
 import { AiProviderInterface } from '@/app/(server)/services/aiProvider/service';
+import { curlCommand, nodeCommand, pythonCommand } from '@/lib/utils/onboardingUtils';
 import { CreateAiKeyData, CreateAiKeySchema } from '@/lib/validation/aiKeys.schemas';
 import {
 	Button,
@@ -26,6 +29,8 @@ import {
 	SelectValue,
 } from '@/shadcn-ui';
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 /**
  *
  * @param setIsOpen Function to set the onboarding modal open state
@@ -35,19 +40,21 @@ import {
 const OnboardingStep1 = ({
 	setIsOpen,
 	setStep,
+	form,
 }: {
 	setIsOpen: (isOpen: boolean) => void;
 	setStep: (step: number) => void;
+	form: ReturnType<typeof useForm<CreateAiKeyData>>;
 }) => {
 	const [providers, setProviders] = useState<AiProviderInterface[]>([]);
-	const form = useForm<CreateAiKeyData>({
-		resolver: zodResolver(CreateAiKeySchema),
-		defaultValues: {
-			provider: providers[0]?.code as CreateAiKeyData['provider'],
-			apiKey: 'sk-1234abcd',
-			aiKey: '',
-		},
-	});
+	// const form = useForm<CreateAiKeyData>({
+	// 	resolver: zodResolver(CreateAiKeySchema),
+	// 	defaultValues: {
+	// 		provider: providers[0]?.code as CreateAiKeyData['provider'],
+	// 		apiKey: 'sk-1234abcd',
+	// 		aiKey: '',
+	// 	},
+	// });
 	const {
 		handleSubmit,
 		formState: { errors },
@@ -79,14 +86,15 @@ const OnboardingStep1 = ({
 			body: JSON.stringify(data),
 		});
 		if (res.ok) {
+			setIsFormLoading(false);
 			setStep(1);
 		} else {
 			const errorData = await res.json();
 			toast.error('Failed to create AI key. Please try again.', {
 				description: errorData.error.message,
 			});
+			setIsFormLoading(false);
 		}
-		setIsFormLoading(false);
 	};
 
 	if (isLoading) {
@@ -195,10 +203,63 @@ const OnboardingStep1 = ({
 const OnboardingStep2 = ({
 	setStep,
 	setIsOpen,
+	provider,
+	apiKey,
 }: {
 	setIsOpen: (isOpen: boolean) => void;
 	setStep: (step: number) => void;
+	provider: string;
+	apiKey: string;
 }) => {
+	const [activeTab, setActiveTab] = useState<'curl' | 'python' | 'node'>('node');
+	const [code, setCode] = useState<string>('');
+	const [isLoading, setIsLoading] = useState(false);
+
+	const codes = useMemo(
+		() => ({
+			node: {
+				code: nodeCommand(apiKey, provider),
+				lang: 'javascript',
+			},
+			curl: { code: curlCommand(apiKey, provider), lang: 'bash' },
+			python: { code: pythonCommand(apiKey, provider), lang: 'python' },
+		}),
+		[apiKey, provider],
+	);
+
+	const codeToHtmlSanitized = async () => {
+		const html = await codeToHtml(codes[activeTab].code, {
+			lang: codes[activeTab].lang,
+			theme: 'dark-plus',
+		});
+		return sanitizeHtml(html, {
+			allowedTags: sanitizeHtml.defaults.allowedTags.concat(['span']),
+			allowedAttributes: {
+				...sanitizeHtml.defaults.allowedAttributes,
+				span: ['className', 'style'],
+				code: ['className', 'style'],
+				pre: ['className', 'style'],
+			},
+		});
+	};
+
+	useEffect(() => {
+		codeToHtmlSanitized().then(setCode);
+	}, [activeTab, code]);
+
+	const handleContinue = async () => {
+		setIsLoading(true);
+		const res = await fetch('/api/settings/environment/');
+		const data = await res.json();
+		if (!data?.validated) {
+			toast.error('Please run the test successfully before continuing.');
+			setIsLoading(false);
+			return;
+		}
+		setIsLoading(false);
+		setStep(2);
+	};
+
 	return (
 		<div>
 			<h2 className='mb-2 font-semibold'>Let’s run a test now</h2>
@@ -211,45 +272,34 @@ const OnboardingStep2 = ({
 					<Button
 						size='sm'
 						variant='outline'
+						onClick={() => setActiveTab('node')}
+						isActive={activeTab === 'node'}
+					>
+						Node.js
+					</Button>
+					<Button
+						size='sm'
+						variant='outline'
+						onClick={() => setActiveTab('curl')}
+						isActive={activeTab === 'curl'}
 					>
 						Curl
 					</Button>
 					<Button
 						size='sm'
 						variant='outline'
-						isActive
+						onClick={() => setActiveTab('python')}
+						isActive={activeTab === 'python'}
 					>
 						Python
-					</Button>
-					<Button
-						size='sm'
-						variant='outline'
-					>
-						Node.js
 					</Button>
 				</div>
 				<small>Waiting for test results...</small>
 			</div>
-			<div className='bg-muted border-border mb-6 overflow-x-auto rounded-md border p-4'>
-				<code className='font-mono text-sm'>{`// npm install --save langroute
-import {LangRoute} from 'langroute';
-
-// Create an LLM using a virtual key
-const langroute = new LangRoute({
-    apiKey: "GuzafnEa55uwdBaF88aBuV0Q2Z",
-    virtualKey: "virtual-key-12abdf"
-});
-
-const chatCompletion = await langroute.chat.completions.create({
-    messages: [{ role: 'user', content: 'What is an LLM proxy?' }],
-    model: "gpt-4o",
-    maxTokens: 64
-});
-
-console.log(chatCompletion.choices);
-
-`}</code>
-			</div>
+			<div
+				className='border-border mb-6 overflow-x-auto rounded-md border break-all [&_code]:!p-0 [&_pre]:p-4 [&_pre]:text-xs'
+				dangerouslySetInnerHTML={{ __html: code }}
+			/>
 			<div className='flex items-center justify-between'>
 				<Button
 					variant='link'
@@ -265,13 +315,15 @@ console.log(chatCompletion.choices);
 					>
 						Cancel
 					</Button>
-					<Button
-						onClick={() => {
-							// TODO: verify if the test request was successful
-							setStep(2);
-						}}
-					>
-						Continue
+					<Button onClick={handleContinue}>
+						{isLoading ? (
+							<LoaderCircle
+								className='text-accent animate-spin'
+								size={40}
+							/>
+						) : (
+							'Continue'
+						)}
 					</Button>
 				</div>
 			</div>
@@ -302,16 +354,28 @@ const OnboardingStep3 = ({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }
 
 const Onboarding = ({ setIsOpen }: { setIsOpen: (isOpen: boolean) => void }) => {
 	const [screen, setScreen] = useState(0);
+	const form = useForm<CreateAiKeyData>({
+		resolver: zodResolver(CreateAiKeySchema),
+		defaultValues: {
+			provider: '' as CreateAiKeyData['provider'],
+			apiKey: 'sk-1234abcd',
+			aiKey: '',
+		},
+	});
+
 	const steps = [
 		<OnboardingStep1
 			key={0}
 			setStep={setScreen}
 			setIsOpen={setIsOpen}
+			form={form}
 		/>,
 		<OnboardingStep2
 			key={1}
 			setStep={setScreen}
 			setIsOpen={setIsOpen}
+			provider={form.getValues('provider')}
+			apiKey={form.getValues('apiKey')}
 		/>,
 		<OnboardingStep3
 			key={2}
