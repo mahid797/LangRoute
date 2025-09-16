@@ -3,7 +3,7 @@
 import React from 'react';
 
 import NextLink from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -19,6 +19,8 @@ export default function LoginForm() {
 	const loginMutation = useLoginMutation();
 	const queryClient = useQueryClient();
 	const form = useLoginForm();
+	const params = useSearchParams();
+	const nextUrl = params.get('callbackUrl') ?? '/dashboard';
 
 	const {
 		getValues,
@@ -36,10 +38,10 @@ export default function LoginForm() {
 			const message = loginMutation.data?.message ?? 'Logged in successfully. Redirecting…';
 			toast.showToast({ message, variant: 'success' });
 
-			router.replace('/dashboard');
+			router.replace(nextUrl);
 		},
 		onError: (err) => {
-			const message = err.message || 'Unable to log in!';
+			const message = err.message ?? 'Unable to log in!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
@@ -53,7 +55,7 @@ export default function LoginForm() {
 					onSubmit={handleSubmit}
 					className='min-w-[25em]'
 				>
-					<div className='mb-10 flex flex-col gap-5'>
+					<div className='flex flex-col gap-5'>
 						<FormInput
 							control={form.control}
 							name='email'
@@ -69,6 +71,9 @@ export default function LoginForm() {
 							placeholder='********'
 						/>
 					</div>
+					<div className='mt-3 mb-11'>
+						<NextLink href='/password/forgot'>Forgot password?</NextLink>
+					</div>
 					<div>
 						<Button
 							type='submit'
@@ -82,7 +87,10 @@ export default function LoginForm() {
 					</div>
 				</form>
 			</Form>
-			<NextLink href='/password/forgot'>Forgot your password?</NextLink>
+			<div>
+				<span className='body2'>New to LangRoute? </span>
+				<NextLink href='/register'>Create an account</NextLink>
+			</div>
 		</>
 	);
 }
