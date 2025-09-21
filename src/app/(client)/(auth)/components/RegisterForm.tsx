@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { Button, FormInput } from '@components';
+import { Button, FormInput, PasswordValidation } from '@components';
 
 import { useLoginMutation, useRegisterMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useRegisterForm } from '@/app/(client)/hooks/forms';
@@ -23,6 +23,8 @@ export default function RegisterForm() {
 	const {
 		getValues,
 		formState: { isValid },
+		watchPassword,
+		isPasswordTouched,
 	} = form;
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
@@ -102,6 +104,13 @@ export default function RegisterForm() {
 							placeholder='Confirm your password'
 						/>
 					</div>
+
+					{/* Real-time password strength feedback */}
+					<PasswordValidation
+						passwordValue={watchPassword}
+						isBlur={isPasswordTouched}
+					/>
+
 					<div>
 						<Button
 							type='submit'

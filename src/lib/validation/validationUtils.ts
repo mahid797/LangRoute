@@ -16,10 +16,22 @@ export const PASSWORD_RULES = {
  * @param password - The password to validate
  * @returns boolean - True if the password meets complexity rules, false otherwise
  */
-export function validatePasswordComplexity(password: string): boolean {
+export const validatePasswordComplexity = (password: string): boolean => {
 	return (
 		password.length >= PASSWORD_RULES.MIN_LEN &&
 		PASSWORD_RULES.NEEDS_UPPERCASE.test(password) &&
 		PASSWORD_RULES.NEEDS_SYMBOL.test(password)
 	);
-}
+};
+
+/**
+ * Checks a password string against the current password policy.
+ *
+ * @param password - The password string to check.
+ * @returns An object with booleans for each password rule.
+ */
+export const getPasswordChecks = (password: string) => ({
+	isLengthValid: password.length >= PASSWORD_RULES.MIN_LEN,
+	hasUppercase: PASSWORD_RULES.NEEDS_UPPERCASE.test(password),
+	hasSymbol: PASSWORD_RULES.NEEDS_SYMBOL.test(password),
+});
