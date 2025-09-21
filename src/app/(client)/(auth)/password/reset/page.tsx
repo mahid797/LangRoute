@@ -1,12 +1,12 @@
 import React from 'react';
 
 import AuthFormWrapper from '../../components/AuthFormWrapper';
-import ForgotPasswordForm from '../../components/ForgotPasswordForm';
+import ResetPasswordForm from '../../components/ResetPasswordForm';
 
-export default function ForgotPasswordPage() {
+export default function ResetPasswordPage() {
 	return (
 		<AuthFormWrapper>
-			<ForgotPasswordForm />
+			<ResetPasswordForm />
 		</AuthFormWrapper>
 	);
 }
