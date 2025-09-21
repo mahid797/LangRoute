@@ -111,7 +111,7 @@ interface UseFormSubmissionProps<
 	/** Client-side validator – return `true` to proceed. */
 	validate?: () => boolean;
 	getVariables?: () => V;
-	onSuccess?: () => void;
+	onSuccess?: (result?: R) => void;
 	onError?: (error: E) => void;
 	/** Pre-canned toast messages on success/failure. */
 	successMessage?: string;
@@ -170,10 +170,12 @@ export const useFormSubmission = <V = void, R = unknown, E = unknown, C = unknow
 		if (validate && !validate()) return;
 
 		try {
+			let result: R | undefined;
+
 			if (mutation) {
 				/* ---------- adapter mode (tanstack-query) ---------- */
 				const variables = getVariables ? getVariables() : undefined;
-				await mutation.mutateAsync(variables as unknown as V);
+				result = await mutation.mutateAsync(variables as unknown as V);
 			} else if (onSubmit) {
 				/** @deprecated Legacy fallback mode */
 				setLocalLoading(true);
@@ -183,7 +185,7 @@ export const useFormSubmission = <V = void, R = unknown, E = unknown, C = unknow
 			if (successMessage && !skipDefaultToast) {
 				toast.showToast({ message: successMessage, variant: 'success' });
 			}
-			onSuccess?.();
+			onSuccess?.(result);
 		} catch (err: unknown) {
 			if (err instanceof ValidationAbortError) return;
 
