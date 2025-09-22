@@ -138,7 +138,7 @@ function AuthDropdownContent({ user, onSignOut, isSigningOut }: AuthDropdownCont
 				className='text-destructive focus:text-destructive'
 			>
 				<LogOut className='mr-2' />
-				{isSigningOut ? 'Signing out…' : 'Sign out'}
+				{isSigningOut ? 'Logging out...' : 'Log out'}
 			</DropdownMenuItem>
 		</DropdownMenuContent>
 	);
@@ -194,7 +194,7 @@ function SignInState({
 						<GoogleIcon />
 					)}
 					<span className={isSigningIn ? 'opacity-60' : ''}>
-						{isSigningIn ? 'Signing in...' : 'Continue with Google'}
+						{isSigningIn ? 'Logging in...' : 'Continue with Google'}
 					</span>
 				</div>
 			</SidebarMenuButton>
@@ -208,7 +208,7 @@ function SignInState({
 			className={className}
 			aria-label='Continue with Google'
 			loading={isSigningIn}
-			loadingText='Signing in...'
+			loadingText='Logging in...'
 			startIcon={<GoogleIcon />}
 		>
 			{!isSigningIn && 'Continue with Google'}
