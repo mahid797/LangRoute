@@ -45,7 +45,9 @@ The following structure reflects the organization exactly:
   Re-export via `src/lib/models/index.ts` for stable imports.
 
 - **shadcn primitives** (generated, treat as vendor) → `src/shadcn-ui/**`
-  **Do not modify these files.** Create wrappers under `src/app/(client)/components/**`.
+  > ⚠️ **Warning:** _Do **not** modify these files directly._
+  > Instead, create wrappers under `src/app/(client)/components/**`.
+  > Modifying shadcn files can cause maintenance issues and break updates.
 
 - **Components/wrappers** → `src/app/(client)/components/**`
   Custom components and shadcn wrappers.

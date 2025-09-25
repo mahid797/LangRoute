@@ -1,4 +1,8 @@
+# yaml-language-server: $schema=https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+
 language: en-US
+early_access: false
+enable_free_tier: true
 
 reviews:
   # Tone & automation
@@ -16,6 +20,14 @@ reviews:
   suggested_labels: true
   auto_apply_labels: true
 
+  # Status handling
+  fail_commit_status: true
+
+  # Additional review features
+  high_level_summary: true
+  changed_files_summary: true
+  sequence_diagrams: true
+
   # Focus CR on the meaningful parts of the repo
   path_filters:
     - 'src/**'
@@ -30,24 +42,27 @@ reviews:
 
   # Apply house rules per area
   path_instructions:
-    - path: 'src/app/(server)/api/**/route.ts'
+    - path: 'src/app/[(]server[)]/api/**/route.ts'
       instructions: >
         Keep route handlers thin: validate with Zod (shared schemas), call a Service,
         then return a typed response. Do NOT import prisma/redis or perform business logic here.
-    - path: 'src/app/(server)/services/**'
+        Example: parse with a schema from src/lib/validation/** and call a function in
+        src/app/(server)/services/** that returns typed data.
+    - path: 'src/app/[(]server[)]/services/**'
       instructions: >
         All business logic lives here. No Request/Response/cookies; accept plain inputs
         and return typed results. Reuse shared types and Zod schemas from src/lib/validation/**.
+        Keep services framework-agnostic and unit-testable.
     - path: 'src/lib/validation/**'
       instructions: >
         Define Zod schemas and infer types via z.infer. Avoid duplicate shapes; export
-        schemas for reuse in Services and API routes.
-    - path: 'src/app/(client)/**'
+        schemas for reuse in Services and API routes. Co-locate schema files by domain.
+    - path: 'src/app/[(]client[)]/**'
       instructions: >
         Use TanStack Query hooks for server data (no inline fetches in components).
-        Import query keys from src/lib/queryKeys.ts (canonical).
-        Keep components presentational; Tailwind-first styling.
-        Do not modify src/shadcn-ui/**; build wrappers in src/app/(client)/components/**.
+        Import query keys from src/lib/queryKeys.ts (canonical). Keep components presentational;
+        Tailwind-first styling. Example: import { keys } from 'src/lib/queryKeys' and call
+        a typed hook rather than fetch in the component.
     - path: 'src/shadcn-ui/**'
       instructions: >
         Generated shadcn primitives. Do not modify these files. Create wrapper or
@@ -81,19 +96,60 @@ reviews:
       instructions: >
         Shared middleware helpers. Keep lean; no business logic or side effects.
 
-  # Teach CR how to label PRs for this repo
-  labeling_instructions: |
-    Apply labels as follows (multiple may apply):
-    - 🛠 Backend: changes under src/app/(server)/**, src/db/**, prisma/**
-    - 🎨 Frontend: changes under src/app/(client)/**, src/shadcn-ui/**
-    - 📖 Documentation: changes under docs/**, README.md, CONTRIBUTING.md, SECURITY.md
-    - 🔧 Refactor: structural moves/renames or cleanup without API/route contract changes
-    - 🐛 Bug: fixes for regressions, runtime errors, or failing paths (commit messages often start with "fix:")
-    - ✨ New Feature: new API route/service, new UI page/component, or new capability
-    - 🧹 Cleanup: dead code removal, lint fixes, directory tidying
-    - 🖌️ UX/UI Change: layout/CSS/props purely for UI/UX
-    - 🧩 Core: proxy/chat/auth/llmConfig or other critical modules
-    - ✅ Testing: adds or updates tests/test scaffolding
+  # Teach CR how to label PRs for this repo (array of objects)
+  labeling_instructions:
+    - {
+        label: '🛠 Backend',
+        instructions: 'Apply to changes under src/app/(server)/**, src/db/**, or prisma/**.',
+      }
+    - {
+        label: '🎨 Frontend',
+        instructions: 'Apply to changes under src/app/(client)/** or src/shadcn-ui/**.',
+      }
+    - {
+        label: '📖 Documentation',
+        instructions: 'Apply to changes under docs/**, README.md, CONTRIBUTING.md, SECURITY.md.',
+      }
+    - {
+        label: '🔧 Refactor',
+        instructions: 'Apply to structural moves/renames or cleanup without API/route contract changes.',
+      }
+    - {
+        label: '🐛 Bug',
+        instructions: "Apply to fixes for regressions, runtime errors, or failing paths (e.g., commit starts with 'fix:').",
+      }
+    - {
+        label: '✨ New Feature',
+        instructions: 'Apply to new API routes/services, new UI pages/components, or new capabilities.',
+      }
+    - {
+        label: '🧹 Cleanup',
+        instructions: 'Apply to dead code removal, lint fixes, or directory tidying.',
+      }
+    - {
+        label: '🖌️ UX/UI Change',
+        instructions: 'Apply to layout/CSS/prop changes purely for UI/UX.',
+      }
+    - {
+        label: '🧩 Core',
+        instructions: 'Apply to proxy/chat/auth/llmConfig or other critical modules.',
+      }
+    - {
+        label: '✅ Testing',
+        instructions: 'Apply to additions or updates to tests/test scaffolding.',
+      }
+
+  tools:
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    hadolint:
+      enabled: true
+    gitleaks:
+      enabled: true
 
 knowledge_base:
   code_guidelines:
@@ -103,3 +159,5 @@ knowledge_base:
       - 'docs/architecture.md'
       - 'docs/getting-started.md'
       - 'docs/development-guide.md'
+  web_search:
+    enabled: true
