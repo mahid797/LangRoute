@@ -4,9 +4,11 @@ reviews:
   # Tone & automation
   profile: assertive
   auto_review:
+    base_branches:
+      - "dev"
     enabled: true
     drafts: false
-
+    
   # Reviewers & labels
   suggested_reviewers: true
   auto_assign_reviewers: true
