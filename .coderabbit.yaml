@@ -142,8 +142,6 @@ reviews:
   tools:
     eslint:
       enabled: true
-    markdownlint:
-      enabled: true
     yamllint:
       enabled: true
     hadolint:
