@@ -1,0 +1,96 @@
+language: en-US
+
+reviews:
+  # Tone & automation
+  profile: assertive
+  auto_review:
+    enabled: true
+    drafts: false
+
+  # Reviewers & labels
+  suggested_reviewers: true
+  auto_assign_reviewers: true
+  suggested_labels: true
+  auto_apply_labels: true
+
+  # Focus CR on the meaningful parts of the repo
+  path_filters:
+    - "src/**"
+    - "prisma/**"
+    - "docker/**"
+    - "scripts/**"
+    - "docs/**"
+    - "README.md"
+    - "!public/assets/**"
+    - "!.next/**"
+    - "!**/*.tsbuildinfo"
+
+  # Apply house rules per area
+  path_instructions:
+    - path: "src/app/(server)/api/**/route.ts"
+      instructions: >
+        Keep route handlers thin: validate with Zod (shared schemas), call a Service,
+        then return a typed response. Do NOT import prisma/redis or perform business logic here.
+    - path: "src/app/(server)/services/**"
+      instructions: >
+        All business logic lives here. No Request/Response/cookies; accept plain inputs
+        and return typed results. Reuse shared types and Zod schemas from src/lib/validation/**.
+    - path: "src/lib/validation/**"
+      instructions: >
+        Define Zod schemas and infer types via z.infer. Avoid duplicate shapes; export
+        schemas for reuse in Services and API routes.
+    - path: "src/app/(client)/**"
+      instructions: >
+        Use TanStack Query hooks for server data (no inline fetches in components).
+        Keep components presentational; Tailwind-first styling.
+    - path: "prisma/**"
+      instructions: >
+        If schema changes, include proper Prisma migration(s) and update seed/types.
+        Avoid schema edits without migrations.
+    - path: "scripts/**"
+      instructions: >
+        Tooling only (env/db/ops). No app business logic.
+    - path: "docker/**"
+      instructions: >
+        Ensure env parity with env/.env.example. Prefer minimal, portable changes.
+    - path: "docs/**"
+      instructions: >
+        Keep Development Guide aligned with current directory structure and conventions.
+        Update docs when APIs/routes/schemas change.
+    - path: "src/shadcn-ui/**"
+      instructions: >
+        Generated shadcn primitives. Do not modify these files. Create wrapper or
+        derivative components under src/app/(client)/components/** and compose from
+        the shadcn primitives instead.
+    - path: "src/middleware.ts"
+      instructions: >
+        Global middleware for auth/guards/request shaping only. No business logic.
+    - path: "src/lib/middleware/**"
+      instructions: >
+        Shared middleware helpers. Keep lean; no business logic or side effects.
+    - path: "src/lib/queryKeys.ts"
+      instructions: >
+        Canonical source for TanStack Query keys. Add new keys here and import
+        from this module across the client instead of ad-hoc arrays.
+        
+  # Teach CR how to label PRs for this repo
+  labeling_instructions: |
+    Apply labels as follows (multiple may apply):
+    - 🛠 Backend: changes under src/app/(server)/**, src/db/**, prisma/**
+    - 🎨 Frontend: changes under src/app/(client)/**, src/shadcn-ui/**
+    - 📖 Documentation: changes under docs/**, README.md, CONTRIBUTING.md, SECURITY.md
+    - 🔧 Refactor: structural moves/renames or cleanup without API/route contract changes
+    - 🐛 Bug: fixes for regressions, runtime errors, or failing paths (commit messages often start with "fix:")
+    - ✨ New Feature: new API route/service, new UI page/component, or new capability
+    - 🧹 Cleanup: dead code removal, lint fixes, directory tidying
+    - 🖌️ UX/UI Change: layout/CSS/props purely for UI/UX
+    - 🧩 Core: proxy/chat/auth/llmConfig or other critical modules
+    - ✅ Testing: adds or updates tests/test scaffolding
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "README.md"
+      - "docs/**"  
+      - "docs/development-guide.md"
