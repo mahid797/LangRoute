@@ -5,8 +5,9 @@
  */
 import { useWatch } from 'react-hook-form';
 
-import { useFormWithSchema } from '@/app/(client)/hooks/forms';
 import { RegisterSchema, registerDefaults } from '@/lib/validation';
+
+import { useFormWithSchema } from './useFormWithSchema';
 
 export function useRegisterForm(mode: 'onBlur' | 'onChange' | 'onSubmit' = 'onBlur') {
 	const form = useFormWithSchema(RegisterSchema, registerDefaults, mode);
