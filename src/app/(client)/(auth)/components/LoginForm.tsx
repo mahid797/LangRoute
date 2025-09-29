@@ -12,6 +12,7 @@ import { Button, FormInput } from '@components';
 import { useLoginMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useLoginForm } from '@/app/(client)/hooks/forms';
 import { queryKeys } from '@/lib/queryKeys';
+import { isSafeRelativePath } from '@/lib/utils';
 import { Form } from '@/shadcn-ui';
 
 export default function LoginForm() {
@@ -19,8 +20,11 @@ export default function LoginForm() {
 	const loginMutation = useLoginMutation();
 	const queryClient = useQueryClient();
 	const form = useLoginForm();
+
+	// Determine safe redirect target from ?callbackUrl (same-origin only)
 	const params = useSearchParams();
-	const nextUrl = params.get('callbackUrl') ?? '/dashboard';
+	const callbackUrlParam = params.get('callbackUrl');
+	const nextUrl = isSafeRelativePath(callbackUrlParam) ? callbackUrlParam! : '/dashboard';
 
 	const {
 		getValues,
