@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { signOut } from 'next-auth/react';
 
+import { mutationKeys } from '@/lib/mutationKeys';
 import { queryKeys } from '@/lib/queryKeys';
 
 /**
@@ -60,6 +61,7 @@ export function useSignOutMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation<SignOutResponse, Error, SignOutRequest>({
+		mutationKey: mutationKeys.auth.logout,
 		mutationFn: async () => {
 			// Call NextAuth's signOut with redirect disabled
 			await signOut({ redirect: false });
