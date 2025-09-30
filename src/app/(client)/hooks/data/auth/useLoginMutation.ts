@@ -3,7 +3,7 @@
  * -----------------------------------------------------------------------------
  * React-Query mutation that wraps NextAuth’s credentials sign-in.
  *
- * • Keeps loading/error state in RTK-DevTools.
+ * • Keeps loading/error state in TanStack Query DevTools.
  * • Throws on `error` so useFormSubmission can handle the toast.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
