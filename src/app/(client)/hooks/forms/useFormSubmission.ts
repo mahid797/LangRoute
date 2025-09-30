@@ -168,6 +168,11 @@ export const useFormSubmission = <V = void, R = unknown, E = unknown, C = unknow
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		if (validate && !validate()) return;
+		if (!mutation && !onSubmit) {
+			const msg = 'useFormSubmission: Provide either `mutation` or `onSubmit`.';
+			// Fail fast to avoid misleading success toasts
+			throw new Error(msg);
+		}
 
 		try {
 			let result: R | undefined;

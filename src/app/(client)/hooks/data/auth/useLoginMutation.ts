@@ -6,12 +6,15 @@
  * • Keeps loading/error state in RTK-DevTools.
  * • Throws on `error` so useFormSubmission can handle the toast.
  */
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { signIn } from 'next-auth/react';
 
 import { LoginData, LoginResult } from '@/lib/models';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function useLoginMutation() {
+	const queryClient = useQueryClient();
+
 	return useMutation<LoginResult, Error, LoginData>({
 		mutationFn: async ({ email, password }) => {
 			const res = await signIn('credentials', {
@@ -21,13 +24,18 @@ export default function useLoginMutation() {
 			});
 
 			if (!res) throw new Error('No response from auth server');
-			if (res.error) throw new Error(res.error);
+			if (!res.ok || res.error) throw new Error(res.error ?? 'Login failed');
 
 			return {
 				success: true,
 				message: 'Logged-in',
 				url: res.url,
 			};
+		},
+
+		onSuccess: () => {
+			// Invalidate auth cache so useSessionUser refetches immediately.
+			void queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
 		},
 	});
 }
