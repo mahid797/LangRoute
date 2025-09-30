@@ -4,20 +4,16 @@ import React from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { useQueryClient } from '@tanstack/react-query';
-
 import { Button, FormInput } from '@components';
 
 import { useLoginMutation, useRegisterMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useRegisterForm } from '@/app/(client)/hooks/forms';
-import { queryKeys } from '@/lib/queryKeys';
 import { Form } from '@/shadcn-ui';
 
 export default function RegisterForm() {
 	const router = useRouter();
 	const registerMutation = useRegisterMutation();
 	const loginMutation = useLoginMutation();
-	const queryClient = useQueryClient();
 	const form = useRegisterForm();
 
 	const {
@@ -35,9 +31,6 @@ export default function RegisterForm() {
 			// Auto login after successful registration
 			try {
 				await loginMutation.mutateAsync({ email, password });
-
-				// Invalidate auth cache so useSessionUser refetches immediately.
-				await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
 
 				const message =
 					registerMutation.data?.message ?? 'Account created. Redirecting to your dashboard…';

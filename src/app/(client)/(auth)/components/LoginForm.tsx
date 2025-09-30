@@ -5,20 +5,16 @@ import React from 'react';
 import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { useQueryClient } from '@tanstack/react-query';
-
 import { Button, FormInput } from '@components';
 
 import { useLoginMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useLoginForm } from '@/app/(client)/hooks/forms';
-import { queryKeys } from '@/lib/queryKeys';
 import { isSafeRelativePath } from '@/lib/utils';
 import { Form } from '@/shadcn-ui';
 
 export default function LoginForm() {
 	const router = useRouter();
 	const loginMutation = useLoginMutation();
-	const queryClient = useQueryClient();
 	const form = useLoginForm();
 
 	// Determine safe redirect target from ?callbackUrl (same-origin only)
@@ -36,9 +32,6 @@ export default function LoginForm() {
 		getVariables: () => getValues(),
 		validate: () => isValid,
 		onSuccess: async () => {
-			// Invalidate auth cache so useSessionUser refetches immediately.
-			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
-
 			const message = loginMutation.data?.message ?? 'Logged in successfully. Redirecting…';
 			toast.showToast({ message, variant: 'success' });
 
