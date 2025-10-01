@@ -24,7 +24,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { signOut } from 'next-auth/react';
 
 import { mutationKeys } from '@/lib/mutationKeys';
-import { queryKeys } from '@/lib/queryKeys';
+import { isInternal } from '@/lib/utils';
 
 /**
  * Request parameters for sign-out mutation
@@ -75,10 +75,14 @@ export function useSignOutMutation() {
 			// _data: SignOutResponse  (e.g., { success: true, message: '...' })
 			// vars:  SignOutRequest   (whatever you passed to mutate)
 
-			// Invalidate session queries to update UI immediately
-			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
+			// Ensure no user data persists across sessions
+			await queryClient.cancelQueries();
+			queryClient.clear();
 
-			router.replace(vars?.callbackUrl ?? '/login');
+			// Navigate after cache is cleared
+			const target =
+				vars?.callbackUrl && isInternal(vars.callbackUrl) ? vars.callbackUrl : '/login';
+			router.replace(target);
 		},
 		// Mutation options
 		meta: {

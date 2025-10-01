@@ -35,7 +35,10 @@ export default function ForgotPasswordForm() {
 			}
 		},
 		onError: (err) => {
-			const message = err.message ?? 'Could not process password reset request.';
+			const message =
+				err instanceof Error && err.message
+					? err.message
+					: 'Could not process password reset request.';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
@@ -65,7 +68,7 @@ export default function ForgotPasswordForm() {
 						<Button
 							type='submit'
 							fullWidth
-							disabled={!isValid}
+							disabled={!isValid || loading}
 							loading={loading}
 							loadingText='Processing...'
 						>

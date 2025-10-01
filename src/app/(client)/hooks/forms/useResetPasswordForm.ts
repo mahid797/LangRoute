@@ -6,8 +6,9 @@
  */
 import { useWatch } from 'react-hook-form';
 
-import { useFormWithSchema } from '@/app/(client)/hooks/forms';
 import { ResetPasswordFormSchema, resetPasswordFormDefaults } from '@/lib/validation';
+
+import { useFormWithSchema } from './useFormWithSchema';
 
 export function useResetPasswordForm(mode: 'onBlur' | 'onChange' | 'onSubmit' = 'onBlur') {
 	const form = useFormWithSchema(ResetPasswordFormSchema, resetPasswordFormDefaults, mode);

@@ -38,7 +38,7 @@ export default function LoginForm() {
 			router.replace(nextUrl);
 		},
 		onError: (err) => {
-			const message = err.message ?? 'Unable to log in!';
+			const message = err instanceof Error && err.message ? err.message : 'Unable to log in!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
@@ -75,7 +75,7 @@ export default function LoginForm() {
 						<Button
 							type='submit'
 							fullWidth
-							disabled={!isValid}
+							disabled={!isValid || loading}
 							loading={loading}
 							loadingText='Logging in...'
 						>

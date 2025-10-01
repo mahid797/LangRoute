@@ -1,23 +1,19 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-import { useQueryClient } from '@tanstack/react-query';
 
 import { Button, FormInput, PasswordValidation } from '@components';
 
 import { useResetPasswordMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useResetPasswordForm } from '@/app/(client)/hooks/forms';
-import { queryKeys } from '@/lib/queryKeys';
 import { Form } from '@/shadcn-ui';
 
 export default function ResetPasswordForm() {
 	const router = useRouter();
 	const ResetPasswordMutation = useResetPasswordMutation();
-	const queryClient = useQueryClient();
 	const form = useResetPasswordForm();
 	const params = useSearchParams();
 	const token = params.get('token') ?? '';
@@ -38,24 +34,25 @@ export default function ResetPasswordForm() {
 			});
 		},
 		onSuccess: async () => {
-			// Invalidate auth cache so useSessionUser refetches immediately.
-			await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
-
 			const message = ResetPasswordMutation.data?.message ?? 'Your password has been reset.';
 			toast.showToast({ message, variant: 'success' });
 
 			router.replace('/login?reset=done');
 		},
 		onError: (err) => {
-			const message = err instanceof Error ? err.message : 'Could not reset password';
+			const message =
+				err instanceof Error && err.message ? err.message : 'Could not reset password';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
 	});
 
 	/* ------------- early-guard: no token ------------- */
+	const didNotify = useRef(false);
+
 	useEffect(() => {
-		if (!token) {
+		if (!token && !didNotify.current) {
+			didNotify.current = true; // prevent duplicates (incl. StrictMode)
 			toast.showToast({
 				message: 'We couldn’t retrieve a reset token. Please try again.',
 				variant: 'error',
@@ -63,6 +60,9 @@ export default function ResetPasswordForm() {
 			router.replace('/password/forgot');
 		}
 	}, [token, router, toast]);
+
+	// Prevent UI flicker while redirecting
+	if (!token) return null;
 
 	return (
 		<>
@@ -102,7 +102,7 @@ export default function ResetPasswordForm() {
 						<Button
 							type='submit'
 							fullWidth
-							disabled={!isValid}
+							disabled={!isValid || loading}
 							loading={loading}
 							loadingText='Resetting...'
 						>

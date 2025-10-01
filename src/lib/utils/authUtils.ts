@@ -14,3 +14,24 @@ export function isSafeRelativePath(p: string | null): boolean {
 	if (p.includes('://')) return false; // prevent absolute URLs
 	return true;
 }
+
+/**
+ * Security helper: determine if a URL is internal to the current origin.
+ *
+ * Accepts absolute (e.g., "https://app.example.com/path") or relative ("/path")
+ * input. Rejects protocol-relative ("//host") and cross-origin URLs.
+ *
+ * Use when consuming untrusted values like `callbackUrl` that may be absolute.
+ *
+ * @param url - Absolute or relative URL from an untrusted source.
+ * @returns `true` if the URL resolves to the current origin; otherwise `false`.
+ */
+export function isInternal(url: string): boolean {
+	try {
+		if (url.startsWith('/')) return !url.startsWith('//');
+		const u = new URL(url, window.location.origin);
+		return u.origin === window.location.origin;
+	} catch {
+		return false;
+	}
+}

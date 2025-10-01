@@ -41,7 +41,7 @@ export default function RegisterForm() {
 				router.replace('/dashboard');
 			} catch (err) {
 				const message =
-					err instanceof Error
+					err instanceof Error && err.message
 						? err.message
 						: 'Account created, but we couldn’t sign you in automatically. Please log in.';
 				toast.showToast({ message, variant: 'error' });
@@ -51,7 +51,8 @@ export default function RegisterForm() {
 			}
 		},
 		onError: (err) => {
-			const message = err.message ?? 'Unable to create account!';
+			const message =
+				err instanceof Error && err.message ? err.message : 'Unable to create account!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
@@ -108,7 +109,7 @@ export default function RegisterForm() {
 						<Button
 							type='submit'
 							fullWidth
-							disabled={!isValid}
+							disabled={!isValid || loading}
 							loading={loading}
 							loadingText='Creating account...'
 						>
