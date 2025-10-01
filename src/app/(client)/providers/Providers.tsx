@@ -2,11 +2,10 @@
 
 import { Toaster } from 'react-hot-toast';
 
-import { QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
 
-import { getQueryClient } from './QueryClientProvider';
 import ThemeProvider from './ThemeProvider';
+import QueryProvider from './query/QueryProvider';
 
 /**
  * Global providers wrapper for the LangRoute application.
@@ -17,10 +16,8 @@ import ThemeProvider from './ThemeProvider';
  */
 
 export default function AppProviders({ children }: { children: React.ReactNode }) {
-	const queryClient = getQueryClient();
-
 	return (
-		<QueryClientProvider client={queryClient}>
+		<QueryProvider>
 			<SessionProvider>
 				<ThemeProvider>
 					{children}
@@ -51,6 +48,6 @@ export default function AppProviders({ children }: { children: React.ReactNode }
 					/>
 				</ThemeProvider>
 			</SessionProvider>
-		</QueryClientProvider>
+		</QueryProvider>
 	);
 }

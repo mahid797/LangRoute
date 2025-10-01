@@ -2,7 +2,8 @@ export { default as SearchBar } from './input/SearchBar';
 
 export { default as FormInput } from './form/FormInput';
 
-// Auth components
+export { default as LoadingSpinner } from './loaders/LoadingSpinner';
+
 export { default as GoogleAuthButton } from './auth/GoogleAuthButton';
 
 export { Button } from './common/Button';

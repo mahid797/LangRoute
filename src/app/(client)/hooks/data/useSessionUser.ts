@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { SessionQueryResult, UseSessionUserReturn } from '@lib/models';
 
+import { queryKeys } from '@/lib/queryKeys';
+
 /**
  * Queries the /api/auth/me endpoint to retrieve authenticated user information,
  * providing loading states and role-based helpers. The data is cached for 5 minutes
@@ -13,7 +15,7 @@ import type { SessionQueryResult, UseSessionUserReturn } from '@lib/models';
  */
 export function useSessionUser(): UseSessionUserReturn {
 	const { data, isLoading, isError } = useQuery<SessionQueryResult>({
-		queryKey: ['sessionUser'],
+		queryKey: queryKeys.auth.session,
 		queryFn: async (): Promise<SessionQueryResult> => {
 			const response = await fetch('/api/auth/me', {
 				method: 'GET',
