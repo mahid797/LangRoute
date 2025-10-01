@@ -3,6 +3,9 @@
  * These hooks provide typed, cached access to API endpoints with loading states.
  */
 
+export { default as useLoginMutation } from './auth/useLoginMutation';
+export { default as useRegisterMutation } from './auth/useRegisterMutation';
+
 export { useSessionUser } from './useSessionUser';
 export { useGoogleSignInMutation } from './useGoogleSignInMutation';
 export { useSignOutMutation } from './useSignOutMutation';

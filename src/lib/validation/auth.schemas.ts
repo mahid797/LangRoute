@@ -8,15 +8,18 @@ import { PASSWORD_RULES } from '@lib/validation/validationUtils';
  * Reusable email field validation with proper error messaging.
  */
 export const EmailField = z
-	.email({ error: 'Invalid e-mail address' })
-	.min(1, { error: 'Email is required' });
+	.string()
+	.trim()
+	.min(1, { error: 'Email is required' })
+	.email({ error: 'Invalid e-mail address' });
 
 /**
  * Reusable password field validation with security requirements.
  * Enforces minimum length, uppercase letters, and special symbols.
  */
 export const PasswordField = z
-	.string({ error: 'Password is required' })
+	.string()
+	.min(1, { error: 'Password is required' })
 	.min(PASSWORD_RULES.MIN_LEN, { error: `Must be at least ${PASSWORD_RULES.MIN_LEN} characters` })
 	.regex(PASSWORD_RULES.NEEDS_UPPERCASE, { error: 'Must contain an uppercase letter' })
 	.regex(PASSWORD_RULES.NEEDS_SYMBOL, { error: 'Must include a symbol' });
@@ -99,6 +102,32 @@ export const ChangePasswordSchema = z
 		error: 'Passwords do not match',
 		path: ['confirmPassword'],
 	});
+
+/* ─── Default values ───────────────────────────────────── */
+
+/** Default values for login form */
+export const loginDefaults: LoginData = {
+	email: '',
+	password: '',
+};
+
+/** Default values for registration form */
+export const registerDefaults: RegisterData = {
+	email: '',
+	password: '',
+	confirmPassword: '',
+	name: '',
+};
+
+/** Default values for forgot password form */
+export const forgotPasswordDefaults: ForgotPasswordData = { email: '' };
+
+/** Default values for password reset form */
+export const resetPasswordDefaults: ResetPasswordData = {
+	token: '',
+	newPassword: '',
+	confirmPassword: '',
+};
 
 /* ─── Type Inference Exports ───────────────────────────── */
 
