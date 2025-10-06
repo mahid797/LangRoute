@@ -37,12 +37,12 @@ export default function KeyCreateModal() {
 						<FormInput
 							label='Name of the key'
 							name='alias'
-							placeHolder='Alias'
+							placeholder='Alias'
 						/>
 						<FormInput
 							label='Description'
 							name='description'
-							placeHolder='A short description of the virtual key'
+							placeholder='A short description of the virtual key'
 						/>
 					</div>
 

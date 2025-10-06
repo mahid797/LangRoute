@@ -65,7 +65,7 @@ export const AuthService = {
 	 * Creates an admin user by default for initial setup.
 	 *
 	 * @param data - User registration information following RegisterUserData domain model
-	 * @throws ServiceError(409) when email is already registered
+	 * @throws ServiceError(409) when email is already registered (with fieldErrors)
 	 * @returns Promise<void>
 	 */
 	async registerUser(data: RegisterUserData): Promise<void> {
@@ -80,7 +80,9 @@ export const AuthService = {
 			// TODO: EmailService.sendWelcomeEmail(user)
 		} catch (err: unknown) {
 			if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
-				throw new ServiceError('Email already registered', 409);
+				throw new ServiceError('Email already registered', 409, 'CONFLICT', undefined, {
+					email: 'This email is already registered',
+				});
 			}
 			throw err;
 		}
@@ -92,7 +94,7 @@ export const AuthService = {
 	 * to prevent email enumeration attacks.
 	 *
 	 * @param data - Password reset request following ForgotPasswordData domain model
-	 * @returns Promise<ForgotPasswordResult>
+	 * @returns Promise<ForgotPasswordResult> with managedByProvider flag for OAuth/non-existent accounts
 	 */
 	async forgotPassword(data: ForgotPasswordData): Promise<ForgotPasswordResult> {
 		const { email } = data;
@@ -125,7 +127,7 @@ export const AuthService = {
 	 * Atomically updates the user's password and removes the token.
 	 *
 	 * @param data - Password reset request following ResetPasswordData domain model
-	 * @throws ServiceError(400) when token is invalid or expired
+	 * @throws ServiceError(400) when token is invalid or expired (with fieldErrors)
 	 * @throws ServiceError(404) when user is not found
 	 * @returns Promise<void>
 	 */
@@ -138,7 +140,9 @@ export const AuthService = {
 			select: { identifier: true, expires: true },
 		});
 		if (!rec || rec.expires < new Date()) {
-			throw new ServiceError('Token invalid or expired', 400);
+			throw new ServiceError('Token invalid or expired', 400, 'BAD_REQUEST', undefined, {
+				token: 'This reset link is invalid or has expired. Please request a new one.',
+			});
 		}
 
 		// Find associated user
@@ -182,11 +186,24 @@ export const AuthService = {
 
 		// Validate password complexity - can be moved to a schema in the future
 		if (!validatePasswordComplexity(newPassword)) {
-			throw new ServiceError('Password does not meet complexity rules', 422);
+			throw new ServiceError(
+				'Password does not meet complexity rules',
+				422,
+				'VALIDATION_ERROR',
+				undefined,
+				{
+					newPassword:
+						'Password must be at least 8 characters and include uppercase, lowercase, number, and special character',
+				},
+			);
 		}
 
 		const valid = await argon2.verify(user.hashedPassword, currentPassword);
-		if (!valid) throw new ServiceError('Current password incorrect', 400);
+		if (!valid) {
+			throw new ServiceError('Current password incorrect', 400, 'BAD_REQUEST', undefined, {
+				currentPassword: 'The current password you entered is incorrect',
+			});
+		}
 
 		const newHash = await argon2.hash(newPassword);
 		await prisma.user.update({
