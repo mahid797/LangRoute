@@ -19,7 +19,7 @@ type InputRestProps = Omit<
 >;
 
 interface FormInputProps<T extends FieldValues> extends InputRestProps {
-	control?: Control<T>;
+	control: Control<T>;
 	name: Path<T>;
 	label?: string;
 	type?: string;
