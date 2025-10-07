@@ -6,17 +6,17 @@ export const CreateAccessKeySchema = z.object({
 });
 
 /**
- * Validation schema for virtual key creation.
- * Includes alias, description, AI provider, and API key selection.
+ * Validation schema for Access Key creation.
+ * Includes alias, description, AI provider, and Provider API Key selection.
  */
 export const CreateVirtualKeySchema = z.object({
-	/** Alias/name for the virtual key */
+	/** Alias/name for the Access Key */
 	alias: z
 		.string()
 		.trim()
 		.min(1, { message: 'Key name is required' })
 		.max(100, { message: 'Key name must be less than 100 characters' }),
-	/** Optional description of the virtual key */
+	/** Optional description of the Access Key */
 	description: z
 		.string()
 		.trim()
@@ -29,7 +29,7 @@ export const CreateVirtualKeySchema = z.object({
 });
 
 /**
- * Default values for virtual key creation form.
+ * Default values for Access Key creation form.
  */
 export const createVirtualKeyDefaults = {
 	alias: '',

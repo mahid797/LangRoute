@@ -1,21 +1,21 @@
-// src/lib/validation/chatSchemas.ts
+// src/lib/validation/completions.schemas.ts
 import { z } from 'zod';
 
-import { PARAMETER_LIMITS, ROLE_IDS } from '@lib/config/llmConfig';
+import { PARAMETER_LIMITS, ROLE_IDS } from '@lib/config/modelRegistry';
 
 /**
  * Zod schemas define only the request SHAPE and generic bounds.
  * Model-specific business limits should live in services.
  */
 
-export const ChatMessageSchema = z.object({
+export const CompletionMessageSchema = z.object({
 	role: z.enum(ROLE_IDS),
 	content: z.string().min(1, 'Message content cannot be empty'),
 });
 
-export const ChatCompletionSchema = z.object({
+export const CompletionRequestSchema = z.object({
 	model: z.string().min(1, 'Model is required'),
-	messages: z.array(ChatMessageSchema).min(1, 'At least one message is required'),
+	messages: z.array(CompletionMessageSchema).min(1, 'At least one message is required'),
 
 	temperature: z
 		.number()
@@ -45,5 +45,5 @@ export const ChatCompletionSchema = z.object({
 		.optional(),
 });
 
-export type ChatMessageData = z.infer<typeof ChatMessageSchema>;
-export type ChatCompletionData = z.infer<typeof ChatCompletionSchema>;
+export type CompletionMessage = z.infer<typeof CompletionMessageSchema>;
+export type CompletionRequest = z.infer<typeof CompletionRequestSchema>;

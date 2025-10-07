@@ -1,13 +1,13 @@
-import { ApiKeyService, ServiceError, createErrorResponse } from '@services';
+import { AccessKeyService, ServiceError, createErrorResponse } from '@services';
 
 /**
- * Resolves the API key context from the request headers.
+ * Resolves the access key context from the request headers.
  *
  * @param request - HTTP request containing the authorization header.
- * @returns An object containing the user ID and key ID associated with the API key.
- * @throws ServiceError if the API key is invalid or missing.
+ * @returns An object containing the user ID and key ID associated with the access key.
+ * @throws ServiceError if the access key is invalid or missing.
  */
-export async function resolveApiKeyContext(
+export async function resolveAccessKeyContext(
 	request: Request,
 ): Promise<{ userId: string; keyId: string }> {
 	const authHeader = request.headers.get('authorization');
@@ -15,21 +15,21 @@ export async function resolveApiKeyContext(
 	if (!token) {
 		throw new ServiceError('Unauthorized', 401);
 	}
-	return ApiKeyService.getContextFromToken(token);
+	return AccessKeyService.getContextFromToken(token);
 }
 
 /**
- * Middleware to enforce API key validation before executing the handler.
+ * Middleware to enforce access key validation before executing the handler.
  *
- * @param handler - The request handler to execute after API key validation.
- * @returns A wrapped handler that validates the API key and provides context.
+ * @param handler - The request handler to execute after access key validation.
+ * @returns A wrapped handler that validates the access key and provides context.
  */
-export function withApiKey(
+export function withAccessKey(
 	handler: (req: Request, ctx: { userId: string; keyId: string }) => Promise<Response>,
 ) {
 	return async (request: Request) => {
 		try {
-			const ctx = await resolveApiKeyContext(request);
+			const ctx = await resolveAccessKeyContext(request);
 			return await handler(request, ctx);
 		} catch (err) {
 			if (err instanceof ServiceError) {
