@@ -1,5 +1,4 @@
 import { Role } from '@prisma/client';
-import argon2 from 'argon2';
 import crypto from 'crypto';
 
 import { ServiceError } from '@services';
@@ -17,6 +16,25 @@ import { logWarn } from '@lib/utils';
 import { validatePasswordComplexity } from '@lib/validation/validationUtils';
 
 import prisma from '@/db/prisma';
+
+/* ------------------------------------------------------------------ */
+/*  Lazy argon2 import (Edge-friendly)                                */
+/* ------------------------------------------------------------------ */
+
+let _argon2: typeof import('argon2') | null = null;
+
+/**
+ * Lazily imports argon2 on first use.
+ * This keeps the module Edge-compatible until hash/verify is actually called.
+ *
+ * @returns Promise resolving to argon2 module
+ */
+async function getArgon2(): Promise<typeof import('argon2')> {
+	if (!_argon2) {
+		_argon2 = await import('argon2');
+	}
+	return _argon2;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Guards                                                            */
@@ -72,6 +90,7 @@ export const AuthService = {
 		const { email, password, name } = data;
 
 		// Hash password and create user with admin role
+		const argon2 = await getArgon2();
 		const hashed = await argon2.hash(password);
 		try {
 			await prisma.user.create({
@@ -153,6 +172,7 @@ export const AuthService = {
 		if (!user) throw new ServiceError('User missing', 404);
 
 		// Hash new password and update atomically
+		const argon2 = await getArgon2();
 		const hashedPassword = await argon2.hash(newPassword);
 		await prisma.$transaction([
 			prisma.user.update({
@@ -198,6 +218,7 @@ export const AuthService = {
 			);
 		}
 
+		const argon2 = await getArgon2();
 		const valid = await argon2.verify(user.hashedPassword, currentPassword);
 		if (!valid) {
 			throw new ServiceError('Current password incorrect', 400, 'BAD_REQUEST', undefined, {

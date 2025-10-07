@@ -1,18 +1,18 @@
-// src/app/(server)/services/chat/configService.ts
+// src/app/(server)/services/models/service.ts
 /**
- * Chat configuration service
- * Minimal facade over the chat registry (single source of truth).
+ * Model configuration service
+ * Minimal facade over the model registry (single source of truth).
  */
 import {
 	SUPPORTED_MODELS,
 	SUPPORTED_MODEL_IDS,
 	type SupportedModelId,
-} from '@lib/config/llmConfig';
-import type { ModelConfig } from '@lib/models/Chat';
+} from '@lib/config/modelRegistry';
+import type { ModelConfig } from '@lib/models';
 
 import { ServiceError } from '../system/errorService';
 
-export const ChatConfigService = {
+export const ModelConfigService = {
 	/**
 	 * Return the list of supported model ids.
 	 * Useful for admin UIs or diagnostics.
