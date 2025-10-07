@@ -18,7 +18,9 @@ The following structure reflects the organization exactly:
 > Prefer import **aliases** from `tsconfig.json` (`@/*`, `@services/*`, `@lib/*`, `@hooks/*`, etc.) over long relative paths.
 
 - **API routes** → `src/app/(server)/api/**/route.ts`
-  No `_api` or `/v1` versioning. A **single** `/v1/*` route may exist in the future only for OpenAI compatibility—do **not** version other routes.
+  - Canonical: `/api/completions`, `/api/access-keys`, `/api/usage`
+  - OpenAI-compatible alias: `/api/v1/chat/completions` (maintains OpenAI spec compatibility)
+  - Do **not** version other routes with `/v1`.
 
 - **Services (all business logic)** → `src/app/(server)/services/**`
   Pure business logic that can be called from API routes or background jobs; services never depend on `Request`/`Response`.
@@ -76,14 +78,14 @@ All API routes follow this consistent pattern:
 
 ```ts
 import { z } from 'zod';
-import { createKey } from '@services/apiKey/service';
-import { CreateApiKeySchema } from '@lib/validation/apiKey.schemas';
+import { AccessKeyService } from '@services';
+import { CreateAccessKeySchema } from '@lib/validation';
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const input = CreateApiKeySchema.parse(body);
-  const key = await createKey(input);
-  return Response.json(key, { status: 201 });
+  const input = CreateAccessKeySchema.parse(body);
+  const key = await AccessKeyService.createAccessKey(input);
+  return Response.json({ accessKey: key }, { status: 201 });
 }
 ```
 
