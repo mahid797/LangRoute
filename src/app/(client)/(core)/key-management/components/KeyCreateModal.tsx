@@ -43,7 +43,7 @@ export default function KeyCreateModal() {
 	return (
 		<>
 			<SheetHeader className='pb-0'>
-				<SheetTitle>Create virtual key</SheetTitle>
+				<SheetTitle>Create Access Key</SheetTitle>
 			</SheetHeader>
 
 			<Separator />
@@ -80,7 +80,7 @@ export default function KeyCreateModal() {
 						{/* AI Provider Info */}
 						<div className='grid gap-5'>
 							<div>
-								<h3 className='h3'>AI provider settings</h3>
+								<h3 className='h3'>Provider Configuration</h3>
 								<p className='body2'>Add the credentials for your preferred AI provider.</p>
 							</div>
 							<FormField
@@ -117,22 +117,22 @@ export default function KeyCreateModal() {
 								name='apiKey'
 								render={({ field }) => (
 									<FormItem>
-										<FormLabel>API key of the provider</FormLabel>
+										<FormLabel>Provider API Key</FormLabel>
 										<Select
 											onValueChange={field.onChange}
 											defaultValue={field.value}
 										>
 											<FormControl>
 												<SelectTrigger className='w-full'>
-													<SelectValue placeholder='Select an API key' />
+													<SelectValue placeholder='Select a Provider API Key' />
 												</SelectTrigger>
 											</FormControl>
 											<SelectContent>
 												<SelectGroup>
-													<SelectLabel>API keys</SelectLabel>
+													<SelectLabel>Provider API Keys</SelectLabel>
 													<SelectItem value='key1'>Key 1</SelectItem>
 													<SelectItem value='key2'>Key 2</SelectItem>
-													{/* TODO: Load actual API keys from backend */}
+													{/* TODO: Load actual Provider API Keys from backend */}
 												</SelectGroup>
 											</SelectContent>
 										</Select>

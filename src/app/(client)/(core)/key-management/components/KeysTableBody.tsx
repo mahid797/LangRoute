@@ -71,7 +71,7 @@ export default function KeysTableBody() {
 			<TableBody>
 				<TableRow>
 					<TableCell colSpan={5}>
-						<EmptyState message="You haven't created a key yet. Click on 'Create key' to create your virtual key you can share with your team." />
+						<EmptyState message="You haven't created a key yet. Click 'Create Access Key' to create your virtual key you can share with your team." />
 					</TableCell>
 				</TableRow>
 			</TableBody>
@@ -81,7 +81,7 @@ export default function KeysTableBody() {
 	// Example of table with action buttons (Phase 2 implementation)
 	return (
 		<TableBody>
-			<ExampleKeyRow keyName='Production API Key' />
+			<ExampleKeyRow keyName='Production Access Key' />
 			<ExampleKeyRow keyName='Development Key' />
 		</TableBody>
 	);

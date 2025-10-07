@@ -24,7 +24,7 @@ import {
 	SUPPORTED_MODELS,
 	SUPPORTED_MODEL_IDS,
 	type SupportedModelId,
-} from '@lib/config/llmConfig';
+} from '@lib/config/modelRegistry';
 
 export default function ModelCreateModal() {
 	// Get all available model options for frontend use

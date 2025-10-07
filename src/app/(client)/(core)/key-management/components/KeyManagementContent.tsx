@@ -12,7 +12,7 @@ export default function KeyManagementContent() {
 				<SearchBar />
 
 				<SheetTrigger asChild>
-					<Button variant='default'>Create new virtual key</Button>
+					<Button variant='default'>Create Access Key</Button>
 				</SheetTrigger>
 			</div>
 			<div className='rounded-md border'>
