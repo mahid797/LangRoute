@@ -43,8 +43,8 @@ export default function RegisterPage() {
 						: "Account created, but we couldn't sign you in automatically. Please log in.";
 				toast.error(loginMessage);
 
-				// Fallback: redirect to login page with email prefilled
-				router.replace(`/login?email=${encodeURIComponent(data.email)}`);
+				// Fallback: redirect to login page
+				router.replace('/login?reason=autoLoginFailed');
 			}
 		} catch (err) {
 			handleFormError(err, {

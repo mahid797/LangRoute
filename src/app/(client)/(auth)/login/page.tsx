@@ -27,7 +27,7 @@ export default function LoginPage() {
 
 	// Determine safe redirect target from ?callbackUrl (same-origin only)
 	const callbackUrlParam = params.get('callbackUrl');
-	const nextUrl = isSafeRelativePath(callbackUrlParam) ? callbackUrlParam! : '/dashboard';
+	const nextUrl = isSafeRelativePath(callbackUrlParam) ? callbackUrlParam : '/dashboard';
 
 	const onSubmit = form.handleSubmit(async (data) => {
 		try {
