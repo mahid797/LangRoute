@@ -1,6 +1,7 @@
 export { default as SearchBar } from './input/SearchBar';
 
 export { default as FormInput } from './form/FormInput';
+export { default as PasswordValidation } from './form/PasswordValidation';
 
 export { default as LoadingSpinner } from './loaders/LoadingSpinner';
 

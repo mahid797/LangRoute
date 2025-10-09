@@ -10,12 +10,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { signIn } from 'next-auth/react';
 
 import { LoginData, LoginResult } from '@/lib/models';
+import { mutationKeys } from '@/lib/mutationKeys';
 import { queryKeys } from '@/lib/queryKeys';
 
 export default function useLoginMutation() {
 	const queryClient = useQueryClient();
 
 	return useMutation<LoginResult, Error, LoginData>({
+		mutationKey: mutationKeys.auth.login,
 		mutationFn: async ({ email, password }) => {
 			const res = await signIn('credentials', {
 				redirect: false,

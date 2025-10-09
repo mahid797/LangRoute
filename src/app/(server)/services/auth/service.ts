@@ -127,6 +127,7 @@ export const AuthService = {
 	 * @param data - Password reset request following ResetPasswordData domain model
 	 * @throws ServiceError(400) when token is invalid or expired
 	 * @throws ServiceError(404) when user is not found
+	 * @throws ServiceError(422) when the new password matches the current password
 	 * @returns Promise<void>
 	 */
 	async resetPassword(data: ResetPasswordData): Promise<void> {
@@ -144,9 +145,17 @@ export const AuthService = {
 		// Find associated user
 		const user = await prisma.user.findUnique({
 			where: { email: rec.identifier },
-			select: { id: true },
+			select: { id: true, hashedPassword: true },
 		});
 		if (!user) throw new ServiceError('User missing', 404);
+
+		// Reject if new password equals current password
+		if (user.hashedPassword) {
+			const sameAsCurrent = await argon2.verify(user.hashedPassword, newPassword);
+			if (sameAsCurrent) {
+				throw new ServiceError('New password must be different from your current password.', 422);
+			}
+		}
 
 		// Hash new password and update atomically
 		const hashedPassword = await argon2.hash(newPassword);

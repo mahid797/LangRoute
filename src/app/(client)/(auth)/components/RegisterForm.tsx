@@ -4,7 +4,7 @@ import React from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Button, FormInput } from '@components';
+import { Button, FormInput, PasswordValidation } from '@components';
 
 import { useLoginMutation, useRegisterMutation } from '@/app/(client)/hooks/data';
 import { useFormSubmission, useRegisterForm } from '@/app/(client)/hooks/forms';
@@ -19,6 +19,8 @@ export default function RegisterForm() {
 	const {
 		getValues,
 		formState: { isValid },
+		watchPassword,
+		isPasswordTouched,
 	} = form;
 
 	const { loading, handleSubmit, toast } = useFormSubmission({
@@ -39,7 +41,7 @@ export default function RegisterForm() {
 				router.replace('/dashboard');
 			} catch (err) {
 				const message =
-					err instanceof Error
+					err instanceof Error && err.message
 						? err.message
 						: 'Account created, but we couldn’t sign you in automatically. Please log in.';
 				toast.showToast({ message, variant: 'error' });
@@ -49,7 +51,8 @@ export default function RegisterForm() {
 			}
 		},
 		onError: (err) => {
-			const message = err.message ?? 'Unable to create account!';
+			const message =
+				err instanceof Error && err.message ? err.message : 'Unable to create account!';
 			toast.showToast({ message, variant: 'error' });
 		},
 		skipDefaultToast: true,
@@ -95,11 +98,18 @@ export default function RegisterForm() {
 							placeholder='Confirm your password'
 						/>
 					</div>
+
+					{/* Real-time password strength feedback */}
+					<PasswordValidation
+						passwordValue={watchPassword}
+						isBlur={isPasswordTouched}
+					/>
+
 					<div>
 						<Button
 							type='submit'
 							fullWidth
-							disabled={!isValid}
+							disabled={!isValid || loading}
 							loading={loading}
 							loadingText='Creating account...'
 						>
