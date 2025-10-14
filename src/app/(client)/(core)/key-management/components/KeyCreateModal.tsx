@@ -1,3 +1,34 @@
+'use client';
+
+/**
+ * ============================================================================
+ * TEMPORARY COMPATIBILITY SHIM - DO NOT USE IN PRODUCTION - GC 2025-10-14
+ * ============================================================================
+ *
+ * CONTEXT:
+ * The backend removed `CreateVirtualKeySchema` from validation because we now
+ * use a unified `CreateAccessKeySchema` for all access key operations. The
+ * real schema only accepts: { name?, description? }.
+ *
+ * PROBLEM:
+ * This FE component still renders fields (alias, provider, apiKey) that don't
+ * exist in the real backend schema, causing TypeScript errors.
+ *
+ * TEMPORARY SOLUTION:
+ * We define a LOCAL schema that accepts the old fields purely for FE type safety.
+ * This allows the component to compile but DOES NOT submit to the backend yet.
+ *
+ * TODO (GC 2025-10-14): Remove this entire shim when implementing proper FE refactor:
+ * 1. Remove this local CreateVirtualKeySchema definition
+ * 2. Import and use CreateAccessKeySchema directly from @lib/validation
+ * 3. Update form fields to match backend: name (not alias), description, allowedModels
+ * 4. Remove provider/apiKey fields (not part of access key model)
+ * 5. Implement real submit flow to POST /api/access-keys with proper data shape
+ * 6. Update component copy/UX to reflect "Access Key" (not "Virtual Key")
+ * ============================================================================
+ */
+import { z } from 'zod';
+
 import {
 	Form,
 	FormControl,
@@ -22,9 +53,23 @@ import { useFormWithSchema } from '@hooks/forms';
 
 import { Button, FormInput } from '@components';
 
-import { CreateVirtualKeySchema, createVirtualKeyDefaults } from '@lib/validation';
+// TEMPORARY: Local schema for build compatibility only - GC 2025-10-14
+const CreateVirtualKeySchema = z.object({
+	alias: z.string().trim().min(1).max(100).optional(),
+	description: z.string().trim().max(500).optional(),
+	provider: z.string().trim().min(1).optional(),
+	apiKey: z.string().trim().min(1).optional(),
+});
 
 export default function KeyCreateModal() {
+	// TEMPORARY: Local defaults for build compatibility only - GC 2025-10-14
+	const createVirtualKeyDefaults = {
+		alias: '',
+		description: '',
+		provider: '',
+		apiKey: '',
+	};
+
 	// Initialize form with schema and defaults
 	const form = useFormWithSchema(CreateVirtualKeySchema, createVirtualKeyDefaults);
 

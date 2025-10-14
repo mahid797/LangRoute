@@ -65,7 +65,7 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 		GoogleProvider({
 			clientId: GOOGLE_CLIENT_ID,
 			clientSecret: GOOGLE_CLIENT_SECRET,
-			allowDangerousEmailAccountLinking: true,
+			allowDangerousEmailAccountLinking: false,
 			profile(profile) {
 				return {
 					id: profile.sub ?? profile.id,

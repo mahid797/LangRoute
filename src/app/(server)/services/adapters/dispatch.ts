@@ -1,13 +1,13 @@
+// src/app/(server)/services/adapters/dispatch.ts
 /**
- * Adapter router
+ * Adapter dispatch
  * Routes completion requests to provider-specific adapters
  */
 import { type ProviderId, SUPPORTED_PROVIDERS } from '@lib/config/modelRegistry';
-import type { CompletionResult } from '@lib/models';
 import type { CompletionRequest } from '@lib/validation';
 
 import { ServiceError } from '../system/errorService';
-import type { LlmAdapter } from './base';
+import type { AdapterCompletionPayload, LlmAdapter } from './base';
 
 /**
  * Set of supported provider IDs for O(1) lookup
@@ -16,15 +16,12 @@ const PROVIDERS = new Set(SUPPORTED_PROVIDERS);
 
 /**
  * Mock adapter for development/testing
- * Returns a valid OpenAI-compatible completion result
+ * Returns a valid OpenAI-compatible body (choices + usage only).
+ * NOTE: id/created/model are composed by the CompletionsService.
  */
 const mockAdapter: LlmAdapter = {
-	async complete(req: CompletionRequest): Promise<CompletionResult> {
+	async complete(req: CompletionRequest): Promise<AdapterCompletionPayload> {
 		return {
-			id: `mock-${Date.now()}`,
-			object: 'chat.completion',
-			created: Math.floor(Date.now() / 1000),
-			model: req.model,
 			choices: [
 				{
 					index: 0,
@@ -53,10 +50,10 @@ const mockAdapter: LlmAdapter = {
 export function getAdapterForProvider(provider: ProviderId): LlmAdapter {
 	// Validate provider is supported (Set-based O(1) lookup)
 	if (!PROVIDERS.has(provider)) {
-		throw new ServiceError(`Unsupported provider: ${provider}`, 400);
+		throw new ServiceError(`Unsupported provider: ${provider}`, 400, 'BAD_REQUEST');
 	}
 
-	// For now, all providers use the mock adapter
+	// For now, all providers use the mock adapter.
 	// TODO: Implement real provider-specific adapters:
 	// - OpenAI adapter (src/app/(server)/services/adapters/openai.ts)
 	// - Anthropic adapter (src/app/(server)/services/adapters/anthropic.ts)
