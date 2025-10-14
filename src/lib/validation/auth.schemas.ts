@@ -10,8 +10,8 @@ import { PASSWORD_RULES } from '@lib/validation/validationUtils';
 export const EmailField = z
 	.string()
 	.trim()
-	.min(1, { error: 'Email is required' })
-	.pipe(z.email({ error: 'Invalid e-mail address' }));
+	.min(1, 'Email is required')
+	.pipe(z.email('Invalid e-mail address'));
 
 /**
  * Reusable password field validation with security requirements.
@@ -19,10 +19,10 @@ export const EmailField = z
  */
 export const PasswordField = z
 	.string()
-	.min(1, { error: 'Password is required' })
-	.min(PASSWORD_RULES.MIN_LEN, { error: `Must be at least ${PASSWORD_RULES.MIN_LEN} characters` })
-	.regex(PASSWORD_RULES.NEEDS_UPPERCASE, { error: 'Must contain an uppercase letter' })
-	.regex(PASSWORD_RULES.NEEDS_SYMBOL, { error: 'Must include a symbol' });
+	.min(1, 'Password is required')
+	.min(PASSWORD_RULES.MIN_LEN, `Must be at least ${PASSWORD_RULES.MIN_LEN} characters`)
+	.regex(PASSWORD_RULES.NEEDS_UPPERCASE, 'Must contain an uppercase letter')
+	.regex(PASSWORD_RULES.NEEDS_SYMBOL, 'Must include a symbol');
 
 /* ─── Route-level schemas ───────────────────────────────── */
 
@@ -42,7 +42,7 @@ export const RegisterSchema = z
 		name: z.string().min(1).max(100).optional(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
-		error: 'Passwords do not match',
+		message: 'Passwords do not match',
 		path: ['confirmPassword'],
 	});
 
@@ -54,7 +54,7 @@ export const LoginSchema = z.object({
 	/** User's email address - must be valid email format */
 	email: EmailField,
 	/** Password for authentication - no complexity rules on login */
-	password: z.string().min(1, { error: 'Password is required' }),
+	password: z.string().min(1, 'Password is required'),
 });
 
 /**
@@ -80,7 +80,7 @@ export const ResetPasswordSchema = z
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.newPassword === data.confirmPassword, {
-		error: 'Passwords do not match',
+		message: 'Passwords do not match',
 		path: ['confirmPassword'],
 	});
 
@@ -92,14 +92,14 @@ export const ResetPasswordSchema = z
 export const ChangePasswordSchema = z
 	.object({
 		/** Current password for verification */
-		currentPassword: z.string({ error: 'Current password is required' }),
+		currentPassword: z.string().min(1, 'Current password is required'),
 		/** New password with security requirements */
 		newPassword: PasswordField,
 		/** Password confirmation for validation */
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.newPassword === data.confirmPassword, {
-		error: 'Passwords do not match',
+		message: 'Passwords do not match',
 		path: ['confirmPassword'],
 	});
 

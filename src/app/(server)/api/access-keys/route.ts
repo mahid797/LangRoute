@@ -40,7 +40,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		const parsed = CreateAccessKeySchema.safeParse(body);
 
 		if (!parsed.success) {
-			return createErrorResponse('Validation failed', 422, parsed.error.format());
+			return createErrorResponse('Validation failed', 422, undefined, parsed.error.issues);
 		}
 
 		const accessKey = await AccessKeyService.createAccessKey({

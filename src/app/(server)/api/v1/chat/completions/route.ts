@@ -22,7 +22,7 @@ export const POST = withAccessKey(async (request: Request, ctx): Promise<Respons
 		const parsed = CompletionRequestSchema.safeParse(body);
 
 		if (!parsed.success) {
-			return createErrorResponse('Validation failed', 422, parsed.error.format());
+			return createErrorResponse('Validation failed', 422, undefined, parsed.error.issues);
 		}
 
 		const result = await CompletionsService.processCompletion(parsed.data, ctx.userId);

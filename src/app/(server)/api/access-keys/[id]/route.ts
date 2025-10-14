@@ -24,7 +24,7 @@ export async function PATCH(
 		// Validate path params (UUID in Zod v4 syntax)
 		const parsed = AccessKeyIdParamSchema.safeParse(params);
 		if (!parsed.success) {
-			return createErrorResponse('Invalid access key ID', 422, parsed.error.format());
+			return createErrorResponse('Invalid access key ID', 422, undefined, parsed.error.issues);
 		}
 
 		const userId = await authenticate();
@@ -32,7 +32,7 @@ export async function PATCH(
 
 		const patchParsed = UpdateAccessKeySchema.safeParse(body);
 		if (!patchParsed.success) {
-			return createErrorResponse('Validation failed', 422, patchParsed.error.format());
+			return createErrorResponse('Validation failed', 422, undefined, patchParsed.error.issues);
 		}
 
 		const accessKey = await AccessKeyService.updateAccessKey({
@@ -66,7 +66,7 @@ export async function DELETE(
 		// Validate path params (UUID in Zod v4 syntax)
 		const parsed = AccessKeyIdParamSchema.safeParse(params);
 		if (!parsed.success) {
-			return createErrorResponse('Invalid access key ID', 422, parsed.error.format());
+			return createErrorResponse('Invalid access key ID', 422, undefined, parsed.error.issues);
 		}
 
 		const userId = await authenticate();
@@ -77,7 +77,7 @@ export async function DELETE(
 		});
 
 		// No content on successful delete
-		return new Response(null, { status: 204 });
+		return new NextResponse(null, { status: 204 });
 	} catch (error) {
 		return handleApiError('access-keys-delete', error);
 	}

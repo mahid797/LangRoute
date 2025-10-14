@@ -54,6 +54,7 @@ function statusToCode(status: number): ErrorCode {
  * @returns A unique request ID string.
  */
 function makeRequestId(): string {
+	// Use global Web Crypto when available (edge/runtime friendly), fall back to Node crypto.
 	const cryptoObj = (globalThis as { crypto?: typeof globalThis.crypto }).crypto;
 	if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
 	try {
@@ -69,21 +70,14 @@ function makeRequestId(): string {
  * @param message - The error message to include in the payload.
  * @param status  - The HTTP status code associated with the error.
  * @param code    - Optional canonical error code (defaults to mapping from status).
- * @param fieldErrors - Optional field-specific validation errors for form handling.
  * @returns An object representing the error payload.
  */
-function errorPayload(
-	message: string,
-	status: number,
-	code?: ErrorCode,
-	fieldErrors?: Record<string, string>,
-) {
+function errorPayload(message: string, status: number, code?: ErrorCode) {
 	return {
 		error: {
 			message,
 			code: code ?? statusToCode(status),
 		},
-		fieldErrors,
 		requestId: makeRequestId(),
 		ts: new Date().toISOString(),
 	};
@@ -95,19 +89,19 @@ function errorPayload(
  *
  * @param message - The error message to return to the client.
  * @param status  - The HTTP status code for the response.
+ * @param code    - Optional canonical error code (defaults to mapping from status).
  * @param details - Optional additional details for server-side logging.
- * @param fieldErrors - Optional field-specific validation errors (e.g., { email: "Already exists" }).
  * @returns A Next.js JSON response with the error payload.
  */
 export function createErrorResponse(
 	message: string,
 	status: number,
+	code?: ErrorCode,
 	details?: unknown,
-	fieldErrors?: Record<string, string>,
 ): NextResponse {
 	// Log with details (server-side) but return a clean envelope to clients
 	logError(`[${statusToCode(status)}] ${message}`, details);
-	return NextResponse.json(errorPayload(message, status, undefined, fieldErrors), { status });
+	return NextResponse.json(errorPayload(message, status, code), { status });
 }
 
 /**
@@ -122,7 +116,6 @@ export class ServiceError extends Error {
 	 * @param status  - The HTTP status code (default: 500).
 	 * @param code    - Optional canonical error code (defaults to mapping from status).
 	 * @param details - Optional additional details for server-side logging.
-	 * @param fieldErrors - Optional field-specific validation errors for form handling.
 	 */
 	constructor(
 		message: string,
@@ -135,10 +128,6 @@ export class ServiceError extends Error {
 		 * Optional details that will be logged server-side.
 		 */
 		public details?: unknown,
-		/**
-		 * Optional field-level errors (e.g., { email: "Already registered" }).
-		 */
-		public fieldErrors?: Record<string, string>,
 	) {
 		super(message);
 		this.name = 'ServiceError';
@@ -159,14 +148,10 @@ export function handleApiError(routeName: string, error: unknown): NextResponse 
 			status: error.status,
 			code: error.code,
 			details: error.details,
-			fieldErrors: error.fieldErrors,
 		});
-		return NextResponse.json(
-			errorPayload(error.message, error.status, error.code, error.fieldErrors),
-			{
-				status: error.status,
-			},
-		);
+		return NextResponse.json(errorPayload(error.message, error.status, error.code), {
+			status: error.status,
+		});
 	}
 
 	if (error instanceof Error) {
