@@ -1,6 +1,6 @@
 // src/app/(server)/services/accessKey/service.ts
 import { Prisma } from '@prisma/client';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 
 import { ServiceError } from '@services';
 
@@ -12,16 +12,19 @@ import prisma from '@/db/prisma';
 export interface CreateAccessKeyData {
 	userId: string;
 	name?: string;
+	description?: string;
 }
 
 /**
  * Response shape for access key creation.
+ * Note: `key` (the plaintext secret) is only returned on creation, never again.
  */
 export interface AccessKeyResponse {
 	id: string;
 	key: string;
 	createdAt: Date;
 	name?: string | null;
+	description?: string | null;
 }
 
 /**
@@ -44,6 +47,7 @@ export interface UpdateAccessKeyData {
 /** PATCH input */
 export interface UpdateAccessKeyPatch {
 	name?: string;
+	description?: string;
 	revoked?: boolean;
 	/** ISO string or null (to clear). */
 	expiresAt?: string | null;
@@ -51,30 +55,60 @@ export interface UpdateAccessKeyPatch {
 
 /** Internal: consistent key prefix + preview logic. */
 const KEY_PREFIX = 'lr_';
+
 /**
  * Generates a secure access key with a consistent prefix.
  *
- * @returns A newly generated access key string.
+ * @returns A newly generated access key string (plaintext secret).
  */
 function generateKey(): string {
 	return KEY_PREFIX + randomBytes(32).toString('hex');
 }
 
 /**
+ * Compute a deterministic SHA-256 hex fingerprint for a plaintext key.
+ * Used as a stable lookup id so we never store or query by plaintext.
+ */
+function sha256Hex(input: string): string {
+	return createHash('sha256').update(input).digest('hex');
+}
+
+/**
  * Formats an access key for display by showing a preview (prefix and last 4 characters).
+ * This is stored at creation time and reused later; full key is never returned again.
  *
  * @param key - The access key to format.
- * @returns A formatted string preview of the access key.
+ * @returns A formatted string preview of the access key, e.g., "lr_…a1b2".
  */
 function previewFromKey(key: string): string {
 	const last4 = key.slice(-4);
 	return `${KEY_PREFIX}…${last4}`;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Lazy argon2 import (Edge-friendly)                                */
+/* ------------------------------------------------------------------ */
+
+let _argon2: typeof import('argon2') | null = null;
+
+/**
+ * Lazily imports argon2 on first use.
+ * This keeps the module Edge-compatible until hash/verify is actually called.
+ *
+ * @returns Promise resolving to argon2 module
+ */
+async function getArgon2(): Promise<typeof import('argon2')> {
+	if (!_argon2) {
+		_argon2 = await import('argon2');
+	}
+	return _argon2;
+}
+
 /** Shape returned when we don't want to expose the full key value again. */
 export interface AccessKeySafe {
 	id: string;
 	name: string | null;
+	description: string | null;
 	revoked: boolean;
 	expiresAt: Date | null;
 	createdAt: Date;
@@ -90,8 +124,9 @@ export interface AccessKeySafe {
  */
 function toSafeShape(row: {
 	id: string;
-	key: string;
+	preview: string;
 	name: string | null;
+	description: string | null;
 	revoked: boolean;
 	expiresAt: Date | null;
 	createdAt: Date;
@@ -100,16 +135,18 @@ function toSafeShape(row: {
 	return {
 		id: row.id,
 		name: row.name,
+		description: row.description,
 		revoked: row.revoked,
 		expiresAt: row.expiresAt,
 		createdAt: row.createdAt,
 		updatedAt: row.updatedAt,
-		preview: previewFromKey(row.key),
+		preview: row.preview,
 	};
 }
 
 /**
  * Access Key Service — business logic only.
+ * Implements secure creation (hash-at-rest), lookup by fingerprint, and safe reads.
  */
 export const AccessKeyService = {
 	/**
@@ -123,8 +160,9 @@ export const AccessKeyService = {
 			where: { userId },
 			select: {
 				id: true,
-				key: true,
+				preview: true,
 				name: true,
+				description: true,
 				revoked: true,
 				expiresAt: true,
 				createdAt: true,
@@ -142,16 +180,37 @@ export const AccessKeyService = {
 	 * @returns The created access key object with full key (one-time exposure).
 	 */
 	async createAccessKey(data: CreateAccessKeyData): Promise<AccessKeyResponse> {
-		const { userId, name } = data;
-		const key = generateKey();
+		const { userId, name, description } = data;
+		const key = generateKey(); // plaintext (one-time)
+		const preview = previewFromKey(key);
+		const keyId = sha256Hex(key);
+		const argon2 = await getArgon2();
+		const keyHash = await argon2.hash(key);
+
 		try {
-			const accessKey = await prisma.accessKey.create({
-				data: { key, userId, name },
-				select: { id: true, key: true, createdAt: true, name: true },
+			const rec = await prisma.accessKey.create({
+				data: {
+					userId,
+					name: name ?? null,
+					description: description ?? null,
+					keyId,
+					keyHash,
+					preview,
+				},
+				select: { id: true, createdAt: true, name: true, description: true },
 			});
-			return accessKey;
+
+			// Return the plaintext key ONLY once, on creation
+			return {
+				id: rec.id,
+				key,
+				createdAt: rec.createdAt,
+				name: rec.name,
+				description: rec.description,
+			};
 		} catch (error) {
 			if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+				// Extremely unlikely unless a duplicate keyId (sha256) collision occurs
 				throw new ServiceError('Access key already exists', 409);
 			}
 			throw error;
@@ -195,8 +254,9 @@ export const AccessKeyService = {
 			where: { id: accessKeyId, userId },
 			select: {
 				id: true,
-				key: true,
+				preview: true,
 				name: true,
+				description: true,
 				revoked: true,
 				expiresAt: true,
 				createdAt: true,
@@ -211,6 +271,7 @@ export const AccessKeyService = {
 		// Build update payload (narrow carefully)
 		const data: Record<string, unknown> = {};
 		if (patch.name !== undefined) data.name = patch.name ?? null;
+		if (patch.description !== undefined) data.description = patch.description ?? null;
 		if (patch.revoked !== undefined) data.revoked = Boolean(patch.revoked);
 
 		const v = patch.expiresAt;
@@ -235,8 +296,9 @@ export const AccessKeyService = {
 			data,
 			select: {
 				id: true,
-				key: true,
+				preview: true,
 				name: true,
+				description: true,
 				revoked: true,
 				expiresAt: true,
 				createdAt: true,
@@ -248,21 +310,37 @@ export const AccessKeyService = {
 	},
 
 	/**
-	 * Resolves user & key IDs from an access token.
+	 * Resolves user & key IDs from a presented plaintext access key.
+	 * Strategy: fingerprint (sha256) lookup, then Argon2 verify against stored hash.
 	 *
-	 * @param token - The access key token to resolve.
-	 * @returns An object containing the user ID and key ID associated with the token.
+	 * @param token - The presented plaintext access key (from Authorization header).
+	 * @returns An object containing the user ID and key row ID associated with the token.
 	 */
 	async getContextFromToken(token: string): Promise<{ userId: string; keyId: string }> {
+		// Lookup by deterministic fingerprint (never store or query by plaintext)
+		const fingerprint = sha256Hex(token);
 		const rec = await prisma.accessKey.findUnique({
-			where: { key: token },
-			select: { id: true, userId: true, revoked: true, expiresAt: true },
+			where: { keyId: fingerprint },
+			select: { id: true, userId: true, keyHash: true, revoked: true, expiresAt: true },
 		});
 
+		// Do not reveal which part failed to avoid oracle behavior
 		if (!rec) throw new ServiceError('Unauthorized', 401);
+
+		// Verify the plaintext token against Argon2 hash
+		const argon2 = await getArgon2();
+		const ok = await argon2.verify(rec.keyHash, token);
+		if (!ok) throw new ServiceError('Unauthorized', 401);
+
+		// Policy checks
 		if (rec.revoked) throw new ServiceError('Access key revoked', 401);
 		if (rec.expiresAt && rec.expiresAt < new Date())
 			throw new ServiceError('Access key expired', 401);
+
+		// Best-effort update of lastUsedAt (non-blocking)
+		prisma.accessKey
+			.update({ where: { id: rec.id }, data: { lastUsedAt: new Date() } })
+			.catch(() => {});
 
 		return { userId: rec.userId, keyId: rec.id };
 	},
