@@ -4,8 +4,8 @@ import { Toaster } from 'react-hot-toast';
 
 import { SessionProvider } from 'next-auth/react';
 
+import QueryProvider from './QueryProvider';
 import ThemeProvider from './ThemeProvider';
-import QueryProvider from './query/QueryProvider';
 
 /**
  * Global providers wrapper for the LangRoute application.

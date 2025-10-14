@@ -6,10 +6,13 @@ export const metadata: Metadata = {
 };
 
 /**
- * Provides the HTML layout structure for authentication pages, setting the language to English and rendering the given content inside the body.
- *
+ * Centered layout for authentication pages
  * @param children - The content to display within the authentication layout
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-	return <div>{children}</div>;
+	return (
+		<main className='flex min-h-screen items-center justify-center'>
+			<div className='container flex min-w-lg flex-col items-center gap-10'>{children}</div>
+		</main>
+	);
 }

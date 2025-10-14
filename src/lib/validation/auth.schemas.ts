@@ -11,7 +11,7 @@ export const EmailField = z
 	.string()
 	.trim()
 	.min(1, { error: 'Email is required' })
-	.email({ error: 'Invalid e-mail address' });
+	.pipe(z.email({ error: 'Invalid e-mail address' }));
 
 /**
  * Reusable password field validation with security requirements.

@@ -8,10 +8,6 @@
 //   npm run dev              -> local
 //   npm run dev -- prod      -> prod (single run; next run defaults to local)
 //   npm run dev -- supabase  -> supabase
-//
-// Notes:
-// - Positional arg is *consumed here* and NOT forwarded to Next.js.
-// - Only this script decides LR_TARGET_ENV for the child prepare step.
 import { spawn, spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -5,6 +5,8 @@ export { default as PasswordValidation } from './form/PasswordValidation';
 
 export { default as LoadingSpinner } from './loaders/LoadingSpinner';
 
+export { default as LoadingSpinner } from './loaders/LoadingSpinner';
+
 export { default as GoogleAuthButton } from './auth/GoogleAuthButton';
 
 export { Button } from './common/Button';
