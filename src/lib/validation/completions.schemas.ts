@@ -4,15 +4,47 @@ import { z } from 'zod';
 import { PARAMETER_LIMITS, ROLE_IDS } from '@lib/config/modelRegistry';
 
 /**
- * Zod schemas define only the request SHAPE and generic bounds.
- * Model-specific business limits should live in services.
+ * ============================================================================
+ * ZOD v4 SYNTAX GUIDE FOR AI AGENTS - TO BE REMOVED LATER
+ * ============================================================================
+ *
+ * This file uses Zod v4.0.1 syntax. Key patterns used here:
+ *
+ * 1. ENUM VALIDATION:
+ *    ✅ CORRECT: z.enum(ARRAY_OF_LITERALS)
+ *    Pass a const array directly to z.enum().
+ *
+ * 2. SHORTHAND ERROR MESSAGES:
+ *    ✅ CORRECT: z.string().min(1, 'Error message')
+ *    All validators support the shorthand string syntax in v4.
+ *
+ * 3. CHAINED VALIDATORS:
+ *    ✅ CORRECT: z.number().int().min(1).max(100).optional()
+ *    Chain validators in any order; .optional() typically goes last.
+ *
+ * 4. UNION TYPES:
+ *    ✅ CORRECT: z.union([z.string(), z.array(z.string())])
+ *    Use z.union() for multiple possible types.
+ *
+ * NOTE: These schemas define only the request SHAPE and generic bounds.
+ *       Model-specific business limits should live in services.
+ *
+ * Official Zod v4 docs: https://zod.dev
+ * ============================================================================
  */
 
+/**
+ * Schema for individual completion messages.
+ * Uses z.enum() with const array from model registry.
+ */
 export const CompletionMessageSchema = z.object({
 	role: z.enum(ROLE_IDS),
 	content: z.string().min(1, 'Message content cannot be empty'),
 });
 
+/**
+ * Schema for LLM completion requests (OpenAI-compatible).
+ */
 export const CompletionRequestSchema = z.object({
 	model: z.string().min(1, 'Model is required'),
 	messages: z.array(CompletionMessageSchema).min(1, 'At least one message is required'),

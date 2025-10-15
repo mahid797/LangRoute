@@ -27,9 +27,9 @@ export async function GET(): Promise<NextResponse> {
  * POST /api/access-keys
  *
  * Creates a new access key for the authenticated user.
- * Accepts optional name parameter for access key identification.
+ * Accepts optional name and description parameters for access key identification and metadata.
  *
- * @param request - HTTP request containing optional access key metadata
+ * @param request - HTTP request containing optional access key metadata (name, description)
  * @returns JSON response with created access key details (includes full key one-time)
  */
 export async function POST(request: Request): Promise<NextResponse> {

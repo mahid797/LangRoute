@@ -21,7 +21,7 @@ import prisma from '@/db/prisma';
 /*  Lazy argon2 import (Edge-friendly)                                */
 /* ------------------------------------------------------------------ */
 
-let _argon2: typeof import('argon2') | null = null;
+let _argon2Promise: Promise<typeof import('argon2')> | null = null;
 
 /**
  * Lazily imports argon2 on first use.
@@ -30,10 +30,10 @@ let _argon2: typeof import('argon2') | null = null;
  * @returns Promise resolving to argon2 module
  */
 async function getArgon2(): Promise<typeof import('argon2')> {
-	if (!_argon2) {
-		_argon2 = await import('argon2');
+	if (!_argon2Promise) {
+		_argon2Promise = import('argon2');
 	}
-	return _argon2;
+	return _argon2Promise;
 }
 
 /* ------------------------------------------------------------------ */
@@ -91,7 +91,12 @@ export const AuthService = {
 
 		// Hash password and create user with admin role
 		const argon2 = await getArgon2();
-		const hashed = await argon2.hash(password);
+		const hashed = await argon2.hash(password, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		try {
 			await prisma.user.create({
 				data: { email, hashedPassword: hashed, role: Role.ADMIN, name },
@@ -173,7 +178,12 @@ export const AuthService = {
 
 		// Hash new password and update atomically
 		const argon2 = await getArgon2();
-		const hashedPassword = await argon2.hash(newPassword);
+		const hashedPassword = await argon2.hash(newPassword, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		await prisma.$transaction([
 			prisma.user.update({
 				where: { id: user.id },
@@ -220,7 +230,12 @@ export const AuthService = {
 			});
 		}
 
-		const newHash = await argon2.hash(newPassword);
+		const newHash = await argon2.hash(newPassword, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		await prisma.user.update({
 			where: { id: userId },
 			data: { hashedPassword: newHash },

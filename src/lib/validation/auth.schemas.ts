@@ -2,6 +2,33 @@ import { z } from 'zod';
 
 import { PASSWORD_RULES } from '@lib/validation/validationUtils';
 
+/**
+ * ============================================================================
+ * ZOD v4 SYNTAX GUIDE FOR AI AGENTS - TO BE REMOVED LATER
+ * ============================================================================
+ *
+ * This file uses Zod v4.0.1 syntax. Key patterns used here:
+ *
+ * 1. SHORTHAND ERROR MESSAGES:
+ *    ✅ CORRECT: z.string().min(1, 'Error message')
+ *    This is the concise form for simple validators.
+ *
+ * 2. EMAIL VALIDATION WITH PIPE:
+ *    ✅ CORRECT: z.string().trim().pipe(z.email('message'))
+ *    The .pipe() method chains validators with proper error context.
+ *
+ * 3. REGEX VALIDATION:
+ *    ✅ CORRECT: z.string().regex(/pattern/, 'message')
+ *    Shorthand message syntax works for all validators in v4.
+ *
+ * 4. REFINE WITH MESSAGE:
+ *    ✅ CORRECT: .refine(fn, { message: 'error', path: [...] })
+ *    For .refine(), use `{ message }` not `{ error }` (different API).
+ *
+ * Official Zod v4 docs: https://zod.dev
+ * ============================================================================
+ */
+
 /* ─── Re-usable primitives ─────────────────────────────── */
 
 /**
@@ -11,7 +38,7 @@ export const EmailField = z
 	.string()
 	.trim()
 	.min(1, 'Email is required')
-	.pipe(z.email('Invalid e-mail address'));
+	.pipe(z.email('Invalid email address'));
 
 /**
  * Reusable password field validation with security requirements.

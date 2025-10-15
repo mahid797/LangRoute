@@ -89,7 +89,7 @@ function previewFromKey(key: string): string {
 /*  Lazy argon2 import (Edge-friendly)                                */
 /* ------------------------------------------------------------------ */
 
-let _argon2: typeof import('argon2') | null = null;
+let _argon2Promise: Promise<typeof import('argon2')> | null = null;
 
 /**
  * Lazily imports argon2 on first use.
@@ -98,10 +98,10 @@ let _argon2: typeof import('argon2') | null = null;
  * @returns Promise resolving to argon2 module
  */
 async function getArgon2(): Promise<typeof import('argon2')> {
-	if (!_argon2) {
-		_argon2 = await import('argon2');
+	if (!_argon2Promise) {
+		_argon2Promise = import('argon2');
 	}
-	return _argon2;
+	return _argon2Promise;
 }
 
 /** Shape returned when we don't want to expose the full key value again. */
@@ -185,7 +185,12 @@ export const AccessKeyService = {
 		const preview = previewFromKey(key);
 		const keyId = sha256Hex(key);
 		const argon2 = await getArgon2();
-		const keyHash = await argon2.hash(key);
+		const keyHash = await argon2.hash(key, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 
 		try {
 			const rec = await prisma.accessKey.create({
@@ -328,11 +333,10 @@ export const AccessKeyService = {
 		if (!rec) throw new ServiceError('Unauthorized', 401);
 
 		// Verify the plaintext token against Argon2 hash
+		// Note: argon2.verify() automatically detects hash parameters, no config needed
 		const argon2 = await getArgon2();
 		const ok = await argon2.verify(rec.keyHash, token);
-		if (!ok) throw new ServiceError('Unauthorized', 401);
-
-		// Policy checks
+		if (!ok) throw new ServiceError('Unauthorized', 401); // Policy checks
 		if (rec.revoked) throw new ServiceError('Access key revoked', 401);
 		if (rec.expiresAt && rec.expiresAt < new Date())
 			throw new ServiceError('Access key expired', 401);
