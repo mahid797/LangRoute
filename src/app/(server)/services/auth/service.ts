@@ -1,5 +1,4 @@
 import { Role } from '@prisma/client';
-import argon2 from 'argon2';
 import crypto from 'crypto';
 
 import { ServiceError } from '@services';
@@ -17,6 +16,25 @@ import { logWarn } from '@lib/utils';
 import { validatePasswordComplexity } from '@lib/validation/validationUtils';
 
 import prisma from '@/db/prisma';
+
+/* ------------------------------------------------------------------ */
+/*  Lazy argon2 import (Edge-friendly)                                */
+/* ------------------------------------------------------------------ */
+
+let _argon2Promise: Promise<typeof import('argon2')> | null = null;
+
+/**
+ * Lazily imports argon2 on first use.
+ * This keeps the module Edge-compatible until hash/verify is actually called.
+ *
+ * @returns Promise resolving to argon2 module
+ */
+async function getArgon2(): Promise<typeof import('argon2')> {
+	if (!_argon2Promise) {
+		_argon2Promise = import('argon2');
+	}
+	return _argon2Promise;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Guards                                                            */
@@ -65,14 +83,20 @@ export const AuthService = {
 	 * Creates an admin user by default for initial setup.
 	 *
 	 * @param data - User registration information following RegisterUserData domain model
-	 * @throws ServiceError(409) when email is already registered (with fieldErrors)
+	 * @throws ServiceError(409) when email is already registered
 	 * @returns Promise<void>
 	 */
 	async registerUser(data: RegisterUserData): Promise<void> {
 		const { email, password, name } = data;
 
 		// Hash password and create user with admin role
-		const hashed = await argon2.hash(password);
+		const argon2 = await getArgon2();
+		const hashed = await argon2.hash(password, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		try {
 			await prisma.user.create({
 				data: { email, hashedPassword: hashed, role: Role.ADMIN, name },
@@ -80,7 +104,7 @@ export const AuthService = {
 			// TODO: EmailService.sendWelcomeEmail(user)
 		} catch (err: unknown) {
 			if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
-				throw new ServiceError('Email already registered', 409, 'CONFLICT', undefined, {
+				throw new ServiceError('Email already registered', 409, 'CONFLICT', {
 					email: 'This email is already registered',
 				});
 			}
@@ -127,7 +151,7 @@ export const AuthService = {
 	 * Atomically updates the user's password and removes the token.
 	 *
 	 * @param data - Password reset request following ResetPasswordData domain model
-	 * @throws ServiceError(400) when token is invalid or expired (with fieldErrors)
+	 * @throws ServiceError(400) when token is invalid or expired
 	 * @throws ServiceError(404) when user is not found
 	 * @returns Promise<void>
 	 */
@@ -140,7 +164,7 @@ export const AuthService = {
 			select: { identifier: true, expires: true },
 		});
 		if (!rec || rec.expires < new Date()) {
-			throw new ServiceError('Token invalid or expired', 400, 'BAD_REQUEST', undefined, {
+			throw new ServiceError('Token invalid or expired', 400, 'BAD_REQUEST', {
 				token: 'This reset link is invalid or has expired. Please request a new one.',
 			});
 		}
@@ -153,7 +177,13 @@ export const AuthService = {
 		if (!user) throw new ServiceError('User missing', 404);
 
 		// Hash new password and update atomically
-		const hashedPassword = await argon2.hash(newPassword);
+		const argon2 = await getArgon2();
+		const hashedPassword = await argon2.hash(newPassword, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		await prisma.$transaction([
 			prisma.user.update({
 				where: { id: user.id },
@@ -186,26 +216,26 @@ export const AuthService = {
 
 		// Validate password complexity - can be moved to a schema in the future
 		if (!validatePasswordComplexity(newPassword)) {
-			throw new ServiceError(
-				'Password does not meet complexity rules',
-				422,
-				'VALIDATION_ERROR',
-				undefined,
-				{
-					newPassword:
-						'Password must be at least 8 characters and include uppercase, lowercase, number, and special character',
-				},
-			);
+			throw new ServiceError('Password does not meet complexity rules', 422, 'VALIDATION_ERROR', {
+				newPassword:
+					'Password must be at least 8 characters and include an uppercase letter and a symbol',
+			});
 		}
 
+		const argon2 = await getArgon2();
 		const valid = await argon2.verify(user.hashedPassword, currentPassword);
 		if (!valid) {
-			throw new ServiceError('Current password incorrect', 400, 'BAD_REQUEST', undefined, {
+			throw new ServiceError('Current password incorrect', 400, 'BAD_REQUEST', {
 				currentPassword: 'The current password you entered is incorrect',
 			});
 		}
 
-		const newHash = await argon2.hash(newPassword);
+		const newHash = await argon2.hash(newPassword, {
+			type: argon2.argon2id,
+			memoryCost: 65536, // 64 MiB
+			timeCost: 3,
+			parallelism: 4,
+		});
 		await prisma.user.update({
 			where: { id: userId },
 			data: { hashedPassword: newHash },

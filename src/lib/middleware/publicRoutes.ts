@@ -11,7 +11,7 @@ export const PUBLIC_ROUTES = [
 	'/', // landing page
 	'/login', // authentication pages
 	'/register',
-	'/forgot-password',
+	'/password/forgot',
 	'/403', // forbidden page
 ] as const;
 
@@ -20,7 +20,7 @@ export const PUBLIC_ROUTES = [
  * These will match the path and any nested routes.
  */
 export const PUBLIC_ROUTE_PREFIXES = [
-	'/reset-password', // password reset with tokens
+	'/password/reset', // password reset with tokens
 	'/api/auth', // NextAuth.js routes
 	'/invite', // team invitation pages (future)
 	'/_next', // Next.js asset pipeline

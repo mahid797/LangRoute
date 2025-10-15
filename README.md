@@ -31,29 +31,33 @@ See the [architecture document](docs/architecture.md) for a deeper dive into sys
 
 ## Features
 - **Multi-model support**
-  - Connect OpenAI, Anthropic, Cohere, Azure OpenAI, or any local model.
+  - Connect OpenAI, Anthropic, Google, Azure OpenAI, or any local model via LLM adapters.
 - **Smart routing**
   - Pick the fastest, cheapest, or most accurate model on every request.
-  - Auto-retry with multi-provider fallback when a vendor hiccups.
-- **Rate limits**
-  - Enforce per-key and per-tenant caps. Default limiter is in-memory; Redis is plug-and-play.
+  - Auto-retry with multi-provider fallback when a vendor is unavailable.
+- **Access Keys & rate limits**
+  - Generate Access Keys in Key Management to call LangRoute from your applications.
+  - Enforce per-key and per-tenant rate limits and budgets.
+  - Provider API Keys (Secrets) are encrypted at rest and configured per model.
 - **Logging & monitoring**
   - Track latency, token spend, and full request metadata (prompts redacted in privacy mode).
-  - Ship metrics straight to Prometheus or Grafana.
+  - Ship metrics to Prometheus or Grafana.
 - **Security & privacy**
-  - Tenant isolation via row-level security.
-  - Keys encrypted at rest and stripped from logs.
+  - Tenant isolation with row-level security.
+  - Access Keys shown in full only once at creation; UI displays secure previews.
+  - Provider API Keys encrypted at rest and never logged.
 - **Admin & dev tools**
   - Web playground for side-by-side model tests.
   - Hot-reload configs without downtime.
+  - Web dashboard for managing Access Keys, configuring providers, and viewing analytics.
   - Toggle cache, rate limits, and routing rules from the dashboard.
 
 ## Architecture
-1. **Unified API** – Send a standard `/v1/chat/completions` call.
-2. **Routing engine** – Reads weights, prices, and health stats, then decides which adapter fires.
-3. **Provider adapters** – Translate the internal format to OpenAI, Anthropic, Cohere, Azure, or your local endpoint.
-4. **Middleware chain** – Handles auth, validation, caching, and token counting.
-5. **Async workers** – Push logs and metrics to Postgres and observability backends.
+1. **Unified API** – Send requests to `/api/completions` (canonical) or `/api/v1/chat/completions` (OpenAI-compatible alias).
+2. **Routing engine** – Reads model registry, weights, and provider health, then selects the appropriate LLM adapter.
+3. **LLM adapters** – Translate requests to provider-specific formats (OpenAI, Anthropic, Google, Azure, etc.).
+4. **Middleware chain** – Handles Access Key validation, request validation, caching, and token counting.
+5. **Async workers** – Push logs and metrics to PostgreSQL and observability backends.
 
 ## Tech stack
 | Layer        | Tooling                                        |

@@ -1,10 +1,10 @@
-// src/lib/config/chat.ts
+// src/lib/config/modelRegistry.ts
 /**
- * Chat configuration registry (single source of truth).
+ * Model Registry (single source of truth).
  * - Backend-facing only (no UI colors/icons, no dropdown helpers).
  * - Other modules (schemas, utils, services) should read from here.
  */
-import type { ModelConfig, RoleConfig } from '@lib/models/Chat';
+import type { ModelConfig, RoleConfig } from '@lib/models';
 
 /* ── Models registry ───────────────────────────────────────────────────── */
 
@@ -136,24 +136,22 @@ export const SUPPORTED_MODELS = {
 export type SupportedModelId = keyof typeof SUPPORTED_MODELS;
 export const SUPPORTED_MODEL_IDS = Object.keys(SUPPORTED_MODELS) as SupportedModelId[];
 
-/* ── Providers (derived from registry) ─────────────────────────────────── */
-
-const _PROVIDERS = Array.from(
-	new Set(Object.values(SUPPORTED_MODELS).map((m) => m.provider.toLowerCase())),
-).sort();
+/**
+ * Get model configuration by ID
+ */
+export const SUPPORTED_PROVIDERS = ['anthropic', 'google', 'openai'] as const;
 
 /**
- * Runtime list of supported provider ids, derived from SUPPORTED_MODELS.
- * Example: ["anthropic","google","openai"]
+ * Provider ID type (single source of truth)
  */
-export const SUPPORTED_PROVIDERS = _PROVIDERS as ReadonlyArray<string>;
+export type ProviderId = (typeof SUPPORTED_PROVIDERS)[number];
 
 /* ── Roles (backend only; no UI properties) ───────────────────────────── */
 
 export const ROLE_IDS = ['system', 'user', 'assistant'] as const;
 export type ChatRole = (typeof ROLE_IDS)[number];
 
-export const CHAT_ROLES: Record<ChatRole, RoleConfig> = {
+export const MESSAGE_ROLES: Record<ChatRole, RoleConfig> = {
 	system: { id: 'system', label: 'System', description: 'System instructions and context' },
 	user: { id: 'user', label: 'User', description: 'User messages and queries' },
 	assistant: { id: 'assistant', label: 'Assistant', description: 'AI assistant responses' },

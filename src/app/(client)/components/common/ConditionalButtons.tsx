@@ -81,7 +81,7 @@ export function HeroCTAButtons() {
 				size='lg'
 				asChild
 			>
-				<Link href='/key-management'>Manage API Keys</Link>
+				<Link href='/key-management'>Manage Access Keys</Link>
 			</Button>
 		</>
 	) : (

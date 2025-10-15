@@ -3,8 +3,8 @@
  * Central place for all app configurations
  */
 
-// Chat configuration
-export * from './llmConfig';
+// Model registry
+export * from './modelRegistry';
 
 // Add other configurations here as they're created
 // export * from './api';

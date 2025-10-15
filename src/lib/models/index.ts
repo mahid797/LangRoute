@@ -10,5 +10,5 @@ export * from './User';
 // Authentication-related domain models
 export * from './Auth';
 
-// Chat model configurations and utilities
-export * from './Chat';
+// LLM model configurations and utilities
+export * from './LLM';

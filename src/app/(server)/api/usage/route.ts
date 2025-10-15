@@ -1,3 +1,5 @@
+import { NextResponse } from 'next/server';
+
 import { UsageService, authenticate, handleApiError } from '@services';
 
 /**
@@ -6,13 +8,13 @@ import { UsageService, authenticate, handleApiError } from '@services';
  * @returns A JSON response containing usage statistics.
  * @throws ServiceError if the user is not authenticated or retrieval fails.
  */
-export async function GET(): Promise<Response> {
+export async function GET(): Promise<NextResponse> {
 	try {
 		const userId = await authenticate();
 
 		const usage = await UsageService.getUserUsage(userId);
 
-		return Response.json(usage);
+		return NextResponse.json(usage);
 	} catch (error) {
 		return handleApiError('usage-get', error);
 	}

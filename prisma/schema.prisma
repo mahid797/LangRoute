@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  seed     = "prisma-client"
 }
 
 datasource db {
@@ -23,8 +22,9 @@ model User {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  accounts    Account[]
-  apiKeys     ApiKey[]
+  accounts   Account[]
+  accessKeys AccessKey[]
+
   memberships TeamMembership[]
 
   @@index([role])
@@ -62,17 +62,20 @@ model VerificationToken {
   @@index([identifier])
 }
 
-/// -- Future public-API authentication (stub, unused) --
-model ApiKey {
-  id         String    @id @default(uuid())
-  userId     String
-  key        String    @unique
-  name       String?
-  revoked    Boolean   @default(false)
-  expiresAt  DateTime?
-  lastUsedAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+model AccessKey {
+  id            String    @id @default(uuid())
+  userId        String
+  keyId         String    @unique
+  keyHash       String
+  preview       String
+  name          String?
+  description   String?
+  allowedModels String[]  @default([])
+  revoked       Boolean   @default(false)
+  expiresAt     DateTime?
+  lastUsedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

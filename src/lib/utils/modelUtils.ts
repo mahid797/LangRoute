@@ -1,14 +1,14 @@
-// src/lib/utils/chatUtils.ts
+// src/lib/utils/modelUtils.ts
 /**
- * Minimal backend helpers over the chat registry.
- * Reads only from `lib/config/chat` to keep a single source of truth.
+ * Minimal backend helpers over the model registry.
+ * Reads only from `lib/config/modelRegistry` to keep a single source of truth.
  */
 import {
 	SUPPORTED_MODELS,
 	SUPPORTED_PROVIDERS,
 	type SupportedModelId,
-} from '@/lib/config/llmConfig';
-import type { ModelConfig } from '@/lib/models/Chat';
+} from '@lib/config/modelRegistry';
+import type { ModelConfig } from '@lib/models';
 
 /** Stable list of supported model IDs at runtime. */
 export const SUPPORTED_MODEL_IDS = Object.keys(SUPPORTED_MODELS) as SupportedModelId[];

@@ -16,4 +16,13 @@ export const queryKeys = {
 		all: ['auth'] as const,
 		session: ['auth', 'session'] as const,
 	},
+
+	/* ------------------------------------------------------------------------ */
+	/*  Access Keys                                                             */
+	/* ------------------------------------------------------------------------ */
+	accessKeys: {
+		all: ['access-keys'] as const,
+		list: () => ['access-keys', 'list'] as const,
+		detail: (id: string) => ['access-keys', 'detail', id] as const,
+	},
 } as const;
