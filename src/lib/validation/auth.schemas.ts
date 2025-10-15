@@ -112,6 +112,19 @@ export const ResetPasswordSchema = z
 	});
 
 /**
+ * Client-side schema for ResetPasswordForm (no token field).
+ */
+export const ResetPasswordFormSchema = z
+	.object({
+		newPassword: PasswordField,
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		error: 'Passwords do not match',
+		path: ['confirmPassword'],
+	});
+
+/**
  * Validation schema for password change requests by authenticated users.
  * Validates current password and new password requirements with confirmation.
  * Produces types compatible with ChangePasswordData domain model.
@@ -150,8 +163,7 @@ export const registerDefaults: RegisterData = {
 export const forgotPasswordDefaults: ForgotPasswordData = { email: '' };
 
 /** Default values for password reset form */
-export const resetPasswordDefaults: ResetPasswordData = {
-	token: '',
+export const resetPasswordFormDefaults: ResetPasswordFormData = {
 	newPassword: '',
 	confirmPassword: '',
 };
@@ -174,6 +186,9 @@ export type ForgotPasswordData = z.infer<typeof ForgotPasswordSchema>;
 
 /** Type inference for ResetPasswordSchema - matches ResetPasswordData domain model */
 export type ResetPasswordData = z.infer<typeof ResetPasswordSchema>;
+
+/** Type inference for ResetPasswordFormSchema - client-side form values (no token) */
+export type ResetPasswordFormData = z.infer<typeof ResetPasswordFormSchema>;
 
 /** Type inference for ChangePasswordSchema - matches ChangePasswordData domain model */
 export type ChangePasswordData = z.infer<typeof ChangePasswordSchema>;

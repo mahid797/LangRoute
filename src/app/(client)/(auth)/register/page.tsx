@@ -11,7 +11,7 @@ import { Form } from '@shadcn-ui';
 import { useLoginMutation, useRegisterMutation } from '@hooks/data';
 import { useFormWithSchema } from '@hooks/forms';
 
-import { Button, FormInput } from '@components';
+import { Button, FormInput, PasswordValidation } from '@components';
 
 import { handleFormError } from '@lib/utils';
 import { RegisterSchema, registerDefaults } from '@lib/validation';
@@ -23,6 +23,10 @@ export default function RegisterPage() {
 
 	// Initialize form with schema and defaults
 	const form = useFormWithSchema(RegisterSchema, registerDefaults);
+
+	// Watch for password changes to feed into the PasswordValidation component
+	const watchPassword = form.watch('password');
+	const isPasswordTouched = form.formState.touchedFields.password;
 
 	const onSubmit = form.handleSubmit(async (data) => {
 		try {
@@ -94,6 +98,13 @@ export default function RegisterPage() {
 							placeholder='Confirm your password'
 						/>
 					</div>
+
+					{/* Real-time password strength feedback */}
+					<PasswordValidation
+						passwordValue={watchPassword}
+						isBlur={isPasswordTouched}
+					/>
+
 					<div>
 						<Button
 							type='submit'
