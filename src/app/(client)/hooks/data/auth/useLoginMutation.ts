@@ -67,7 +67,7 @@ export default function useLoginMutation() {
 
 			return {
 				success: true,
-				message: 'Logged-in',
+				message: 'Logged in successfully. Redirecting…',
 				url: res.url,
 			};
 		},
