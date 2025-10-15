@@ -274,7 +274,7 @@ export const AccessKeyService = {
 		}
 
 		// Build update payload (narrow carefully)
-		const data: Record<string, unknown> = {};
+		const data: Prisma.AccessKeyUpdateInput = {};
 		if (patch.name !== undefined) data.name = patch.name ?? null;
 		if (patch.description !== undefined) data.description = patch.description ?? null;
 		if (patch.revoked !== undefined) data.revoked = Boolean(patch.revoked);
