@@ -8,6 +8,6 @@ export { default as useRegisterMutation } from './auth/useRegisterMutation';
 export { default as useForgotPasswordMutation } from './auth/useForgotPasswordMutation';
 export { default as useResetPasswordMutation } from './auth/useResetPasswordMutation';
 
-export { useSessionUser } from './useSessionUser';
+export { useSessionUser } from './auth/useSessionUser';
 export { useGoogleSignInMutation } from './useGoogleSignInMutation';
 export { useSignOutMutation } from './useSignOutMutation';
