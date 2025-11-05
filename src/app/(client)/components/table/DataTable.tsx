@@ -128,7 +128,8 @@ export default function DataTable<T>({
 							const isActive = sort?.columnId === col.id;
 							const sortedDir = isActive ? sort?.dir : undefined;
 							const isSortable = !!col.sortable && !!col.accessor;
-							const ariaSort = getHeaderAriaSort(isActive, sortedDir);
+							const ariaSort =
+								isSortable && isActive ? getHeaderAriaSort(true, sortedDir) : undefined;
 
 							const headerContent = (
 								<div
