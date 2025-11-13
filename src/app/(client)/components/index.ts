@@ -5,6 +5,11 @@ export { default as PasswordValidation } from './form/PasswordValidation';
 
 export { default as LoadingSpinner } from './loaders/LoadingSpinner';
 
+export { default as DataTable } from './table/DataTable';
+export { default as SortIndicator } from './table/SortIndicator';
+export type { DataTableProps } from './table/types';
+export type { ColumnSpec } from './table/types';
+
 export { default as GoogleAuthButton } from './auth/GoogleAuthButton';
 
 export { Button } from './common/Button';

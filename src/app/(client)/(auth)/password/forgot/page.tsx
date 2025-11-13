@@ -28,9 +28,6 @@ export default function ForgotPasswordPage() {
 			// Dev-only: jump straight to reset with token
 			if (response?.token) {
 				router.replace(`/password/reset?token=${encodeURIComponent(response.token)}`);
-			} else {
-				// Fallback: a dev page that explains what's happening
-				router.replace('/password/reset?dev=1');
 			}
 		} catch (err) {
 			handleFormError(err, {
