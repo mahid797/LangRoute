@@ -5,7 +5,7 @@ import { AuthService, createErrorResponse, handleApiError } from '@services';
 import { ForgotPasswordSchema } from '@lib/validation/auth.schemas';
 
 /**
- * POST /api/auth/forgot
+ * POST /api/auth/password/forgot
  *
  * Initiates password reset process by generating a secure token
  * and associating it with the user's email address. For OAuth users

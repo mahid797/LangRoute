@@ -1,38 +1,76 @@
+'use client';
+
 import React from 'react';
 
-/**
- * Renders a centered "Forgot Password" page with a form for users to request a password reset by entering their email address.
- *
- * The component displays a styled container with a heading, an email input field, and a submit button. No form submission logic or validation is included.
- */
+import NextLink from 'next/link';
+import { useRouter } from 'next/navigation';
+
+import { useForgotPasswordMutation } from '@hooks/data';
+import { useFormWithSchema } from '@hooks/forms';
+
+import { Button, FormInput } from '@components';
+
+import { handleFormError } from '@/lib/utils';
+import { ForgotPasswordSchema, forgotPasswordDefaults } from '@/lib/validation';
+import { Form } from '@/shadcn-ui';
+
 export default function ForgotPasswordPage() {
+	const router = useRouter();
+	const forgotPasswordMutation = useForgotPasswordMutation();
+
+	// Initialize form with schema and defaults
+	const form = useFormWithSchema(ForgotPasswordSchema, forgotPasswordDefaults);
+
+	const onSubmit = form.handleSubmit(async (data) => {
+		try {
+			const response = await forgotPasswordMutation.mutateAsync(data);
+
+			// Dev-only: jump straight to reset with token
+			if (response?.token) {
+				router.replace(`/password/reset?token=${encodeURIComponent(response.token)}`);
+			}
+		} catch (err) {
+			handleFormError(err, {
+				setError: form.setError,
+				errorMessage: 'Could not send reset instructions.',
+			});
+		}
+	});
+
 	return (
-		<div className='flex min-h-screen items-center justify-center bg-gray-100'>
-			<div className='w-full max-w-md rounded-lg bg-white p-8 shadow-md'>
-				<h1 className='mb-6 text-center text-2xl font-bold'>Forgot Password</h1>
-				<form>
-					<div className='mb-4'>
-						<label
-							htmlFor='email'
-							className='block text-sm font-medium text-gray-700'
-						>
-							Email
-						</label>
-						<input
+		<>
+			<div className='flex flex-col items-center gap-4'>
+				<h1 className='h1'>Forgot password?</h1>
+				<p className='body2'>Enter your account email to continue.</p>
+			</div>
+			<Form {...form}>
+				<form
+					onSubmit={onSubmit}
+					className='min-w-[25em]'
+				>
+					<div className='mb-10 flex flex-col gap-5'>
+						<FormInput
+							control={form.control}
+							name='email'
+							label='Email'
 							type='email'
-							id='email'
-							className='mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:ring focus:ring-indigo-200 focus:outline-none'
-							placeholder='Enter your email'
+							placeholder='m@example.com'
 						/>
 					</div>
-					<button
-						type='submit'
-						className='w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:ring focus:ring-indigo-300 focus:outline-none'
-					>
-						Reset Password
-					</button>
+					<div>
+						<Button
+							type='submit'
+							fullWidth
+							disabled={!form.formState.isValid}
+							loading={forgotPasswordMutation.isPending}
+							loadingText='Processing...'
+						>
+							Reset password
+						</Button>
+					</div>
 				</form>
-			</div>
-		</div>
+			</Form>
+			<NextLink href='/login'>← Back to login</NextLink>
+		</>
 	);
 }

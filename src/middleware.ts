@@ -26,7 +26,7 @@ export default auth((req) => {
 	}
 
 	// Redirect authenticated users away from auth pages to default dashboard
-	if (['/login', '/register', '/forgot-password'].includes(pathname)) {
+	if (['/login', '/register', '/password/forgot'].includes(pathname)) {
 		return NextResponse.redirect(new URL('/dashboard', req.url));
 	}
 

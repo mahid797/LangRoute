@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * useSignOutMutation.ts
  * -----------------------------------------------------------------------------
@@ -16,15 +18,19 @@
  * }
  * ```
  */
-import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { signOut } from 'next-auth/react';
+
+import { mutationKeys } from '@/lib/mutationKeys';
+import { isInternal } from '@/lib/utils';
 
 /**
  * Request parameters for sign-out mutation
  */
 export interface SignOutRequest {
-	/** Optional URL to redirect to after successful sign-out. Defaults to '/' */
+	/** Optional URL to redirect to after successful sign-out. Defaults to '/login' */
 	callbackUrl?: string;
 }
 
@@ -44,31 +50,43 @@ export interface SignOutResponse {
  * Provides a clean interface for triggering sign-out with built-in loading states,
  * error handling, and automatic cache invalidation to refresh session state.
  *
- * Uses NextAuth's client-side signOut function with default redirect behavior.
+ * Uses NextAuth's client-side signOut with redirect disabled.
  * Invalidates session queries to ensure UI updates immediately.
+ * Navigates to callbackUrl (falling back to '/login').
  *
  * @returns TanStack Query mutation object with sign-out functionality
  */
 export function useSignOutMutation() {
+	const router = useRouter();
 	const queryClient = useQueryClient();
 
 	return useMutation<SignOutResponse, Error, SignOutRequest>({
-		mutationFn: async ({ callbackUrl = '/' }: SignOutRequest) => {
-			// Call NextAuth's signOut with default redirect behavior
-			await signOut({ callbackUrl });
+		mutationKey: mutationKeys.auth.logout,
+		mutationFn: async () => {
+			// Call NextAuth's signOut with redirect disabled
+			await signOut({ redirect: false });
 
 			return {
 				success: true,
-				message: 'Signed out successfully',
+				message: 'Logged out successfully',
 			};
 		},
-		onSuccess: () => {
-			// Invalidate session queries to update UI immediately
-			queryClient.invalidateQueries({ queryKey: ['sessionUser'] });
+		onSuccess: async (_data, vars) => {
+			// _data: SignOutResponse  (e.g., { success: true, message: '...' })
+			// vars:  SignOutRequest   (whatever you passed to mutate)
+
+			// Ensure no user data persists across sessions
+			await queryClient.cancelQueries();
+			queryClient.clear();
+
+			// Navigate after cache is cleared
+			const target =
+				vars?.callbackUrl && isInternal(vars.callbackUrl) ? vars.callbackUrl : '/login';
+			router.replace(target);
 		},
 		// Mutation options
 		meta: {
-			action: 'Sign Out',
+			action: 'Log out',
 		},
 	});
 }

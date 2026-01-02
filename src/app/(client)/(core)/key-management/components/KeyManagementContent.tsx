@@ -1,6 +1,6 @@
-import { Button, Sheet, SheetContent, SheetTrigger } from '@shadcn-ui';
+import { Sheet, SheetContent, SheetTrigger } from '@shadcn-ui';
 
-import { SearchBar } from '@components';
+import { Button, SearchBar } from '@components';
 
 import KeyCreateModal from './KeyCreateModal';
 import KeysTable from './KeysTable';
@@ -12,7 +12,7 @@ export default function KeyManagementContent() {
 				<SearchBar />
 
 				<SheetTrigger asChild>
-					<Button>Create new virtual key</Button>
+					<Button variant='default'>Create Access Key</Button>
 				</SheetTrigger>
 			</div>
 			<div className='rounded-md border'>

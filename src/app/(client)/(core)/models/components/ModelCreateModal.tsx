@@ -3,7 +3,6 @@
 import { FormEvent, useMemo } from 'react';
 
 import {
-	Button,
 	DialogClose,
 	DialogFooter,
 	DialogHeader,
@@ -19,11 +18,13 @@ import {
 	SelectValue,
 } from '@shadcn-ui';
 
+import { Button } from '@components';
+
 import {
 	SUPPORTED_MODELS,
 	SUPPORTED_MODEL_IDS,
 	type SupportedModelId,
-} from '@lib/config/llmConfig';
+} from '@lib/config/modelRegistry';
 
 export default function ModelCreateModal() {
 	// Get all available model options for frontend use
@@ -97,7 +98,13 @@ export default function ModelCreateModal() {
 					<DialogClose asChild>
 						<Button variant='outline'>Cancel</Button>
 					</DialogClose>
-					<Button type='submit'>Add model</Button>
+					<Button
+						type='submit'
+						variant='default'
+						loading={false}
+					>
+						Add model
+					</Button>
 				</DialogFooter>
 			</form>
 		</>

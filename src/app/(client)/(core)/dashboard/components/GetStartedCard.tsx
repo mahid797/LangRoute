@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 
-import { Button, Card, CardDescription, CardHeader, CardTitle } from '@shadcn-ui';
+import { Card, CardDescription, CardHeader, CardTitle } from '@shadcn-ui';
+
+import { Button } from '@components';
 
 interface GetStartedCardProps {
 	title: string;
@@ -14,7 +16,7 @@ interface GetStartedCardProps {
 
 /**
  * Reusable "Get Started" card component for onboarding flows
- * Features responsive layout and call-to-action button
+ * Matches Figma sizing and CTA color.
  */
 export default function GetStartedCard({
 	title,
@@ -26,27 +28,25 @@ export default function GetStartedCard({
 	className = '',
 }: GetStartedCardProps) {
 	return (
-		<Card className={`shadow-sm ${className}`}>
-			<CardHeader>
-				<div className='flex flex-col space-y-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0'>
+		<Card className={`bg-card rounded-xl border shadow-sm ${className}`}>
+			<CardHeader className='p-5'>
+				<div className='flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
 					<div className='flex items-center space-x-3'>
-						<div className='bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg'>
+						<div className='bg-primary/10 text-primary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg'>
 							{icon}
 						</div>
 						<div className='min-w-0 flex-1'>
-							<CardTitle className='text-lg font-semibold'>{title}</CardTitle>
+							<CardTitle className='text-base font-semibold md:text-lg'>{title}</CardTitle>
 							<CardDescription className='text-muted-foreground text-sm'>
 								{description}
 							</CardDescription>
 						</div>
 					</div>
 					<Button
-						variant='outline'
-						size='sm'
-						className='shrink-0'
+						variant='default'
 						onClick={onAction}
+						startIcon={actionIcon}
 					>
-						{actionIcon && <span className='mr-2'>{actionIcon}</span>}
 						{actionLabel}
 					</Button>
 				</div>

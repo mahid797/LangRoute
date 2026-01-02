@@ -56,7 +56,7 @@ export interface ForgotPasswordData {
 
 /**
  * Data structure for password reset completion requests.
- * Used by reset password forms, validation schemas, and API endpoints.
+ * Used by password reset forms, validation schemas, and API endpoints.
  *
  * @interface ResetPasswordData
  */
@@ -89,6 +89,28 @@ export interface ChangePasswordData {
 /* ------------------------------------------------------------------ */
 
 /**
+ * Result of a user login attempt.
+ *
+ * @interface LoginResult
+ */
+export interface LoginResult {
+	success: boolean;
+	message?: string;
+	url?: string | null;
+}
+
+/**
+ * API response structure for user registration requests.
+ *
+ * @interface RegisterUserResult
+ */
+export interface RegisterUserResult {
+	success: boolean;
+	message: string;
+	userId?: string;
+}
+
+/**
  * API response structure for forgot password requests.
  * Contains token information or provider management status.
  *
@@ -99,6 +121,25 @@ export interface ForgotPasswordResult {
 	token?: string;
 	/** Whether password is managed by external provider */
 	managedByProvider?: boolean;
+}
+
+/**
+ * API response structure for password reset requests.
+ *
+ * @interface ResetPasswordResult
+ */
+export interface ResetPasswordResult {
+	success: boolean;
+	message: string;
+}
+
+/**
+ * Result of a user logout request.
+ *
+ * @interface LogoutResult
+ */
+export interface LogoutResult {
+	success: true;
 }
 
 /**

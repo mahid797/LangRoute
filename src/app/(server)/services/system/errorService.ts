@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 import { randomUUID } from 'crypto';
 
-import { logError } from '@lib/utils/logger';
+import { logError } from '@lib/utils';
 
 /**
  * Canonical error codes used in API responses.
@@ -54,6 +54,7 @@ function statusToCode(status: number): ErrorCode {
  * @returns A unique request ID string.
  */
 function makeRequestId(): string {
+	// Use global Web Crypto when available (edge/runtime friendly), fall back to Node crypto.
 	const cryptoObj = (globalThis as { crypto?: typeof globalThis.crypto }).crypto;
 	if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
 	try {
@@ -88,17 +89,19 @@ function errorPayload(message: string, status: number, code?: ErrorCode) {
  *
  * @param message - The error message to return to the client.
  * @param status  - The HTTP status code for the response.
+ * @param code    - Optional canonical error code (defaults to mapping from status).
  * @param details - Optional additional details for server-side logging.
  * @returns A Next.js JSON response with the error payload.
  */
 export function createErrorResponse(
 	message: string,
 	status: number,
+	code?: ErrorCode,
 	details?: unknown,
 ): NextResponse {
 	// Log with details (server-side) but return a clean envelope to clients
 	logError(`[${statusToCode(status)}] ${message}`, details);
-	return NextResponse.json(errorPayload(message, status), { status });
+	return NextResponse.json(errorPayload(message, status, code), { status });
 }
 
 /**

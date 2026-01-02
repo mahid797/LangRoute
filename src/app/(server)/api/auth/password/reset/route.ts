@@ -5,7 +5,7 @@ import { AuthService, createErrorResponse, handleApiError } from '@services';
 import { ResetPasswordSchema } from '@lib/validation/auth.schemas';
 
 /**
- * POST /api/auth/reset
+ * POST /api/auth/password/reset
  *
  * Completes password reset flow using a valid token from the forgot password process.
  * Atomically updates the user's password and removes the reset token for security.

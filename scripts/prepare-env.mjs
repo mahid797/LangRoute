@@ -3,9 +3,6 @@
 // Generate a single root .env by merging files from /env based on a target runtime.
 // No external deps. Cross-platform. Deterministic output.
 //
-// Default behavior: prepares "local" unless LR_TARGET_ENV is provided by the caller.
-// Intended usage: called by 'scripts/dev.mjs' (wrapper) prior to launching Next.js.
-//
 // Manual usage examples (for inspection only):
 //   node scripts/prepare-env.mjs --print        (stdout only)
 //   node scripts/prepare-env.mjs --dry          (don’t write)
